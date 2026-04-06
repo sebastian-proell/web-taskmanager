@@ -1,0 +1,31 @@
+# Maven
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+out/
+*.jar
+
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code / andere
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+# Ignore Kotlin plugin data
+.kotlin
