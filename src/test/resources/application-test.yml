@@ -1,0 +1,15 @@
+# Diese Konfigurationsdatei wird nur für Tests verwendet.
+#
+# Good Practice: Separate Konfigurationsdatei für Tests, damit Tests eine eigene Datenbank und Einstellungen nutzen.
+#
+# Wichtig zu wissen: @ActiveProfiles("test") lädt diese Datei automatisch. Die Test-Datenbank wird
+# nach jedem Test gelöscht (ddl-auto: create-drop), sodass Tests immer mit einer sauberen Datenbank starten.
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
