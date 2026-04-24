@@ -1,54 +1,66 @@
-# TaskManager - Termin 1
+# TaskManager – Vorlesungsprojekt (Termin 2)
 
-**Programmierung von Web-Anwendungen**  
-Termin 1 – Objektorientiertes Java-Modell
+**Grundlegende Spring-Boot REST-API mit JPA, Security und vollständiger Kommentierung**
 
-## Inhalt dieses Branches
+Dieses Projekt ist das offizielle Begleitprojekt für **Termin 2** des Moduls „Programmierung von Web-Anwendungen – webbasierte betriebliche Informationssysteme“.
 
-In diesem Termin wird das grundlegende objektorientierte Modell für den TaskManager erstellt.  
-Es dient als Basis für alle weiteren Termine.
+### Inhalt dieses Termins
+- Spring Boot Grundgerüst mit REST-Controller und CRUD-Endpunkten
+- Domain-Model: `Task`-Entity + `TaskStatus`-Enum + DTOs (`TaskRequest` / `TaskResponse`)
+- Spring Data JPA Repository + Service-Schicht mit Business-Logik
+- SecurityConfiguration mit In-Memory-Benutzern (`user`/`password` und `admin`/`admin`)
+- DataInitializer für Beispiel-Daten
+- H2 In-Memory-Datenbank + H2-Konsole
+- Swagger-UI (springdoc) für interaktive API-Dokumentation
+- Ausführliche Vorlesungskommentare in allen Klassen
+- Vollständige Test-Suite (Unit-, Integration- und Repository-Tests)
 
-### Enthaltene Klassen
+### Good Practice
+- Trennung der Schichten (Controller → Service → Repository)
+- Verwendung von DTOs zur Entkopplung von API und Datenbank-Modell
+- Konstruktor-Injection statt Feld-Injection
+- Zentrale Exception-Handling und Security-Konfiguration
 
-| Klasse                        | Zweck / Lerninhalt                                              | Wichtiges OO-Prinzip                     |
-|-------------------------------|------------------------------------------------------------------|------------------------------------------|
-| `AbstractEntity.java`         | Basisklasse für alle Entitäten mit ID und Vergleichsmethoden     | Vererbung, Abstraktion                   |
-| `TaskStatus.java`             | Enum für den Status einer Aufgabe                                | Aufzählungstypen (Enums)                 |
-| `TaskPriority.java`           | Enum für die Priorität einer Aufgabe                             | Aufzählungstypen (Enums)                 |
-| `Task.java`                   | Hauptklasse einer Aufgabe mit Attributen und Business-Methoden   | Kapselung, Business-Logik                |
-| `User.java`                   | Einfache Benutzerklasse                                          | Vererbung, Kapselung                     |
-| `TaskRepository.java`         | Interface für den Datenzugriff auf Tasks                         | Abstraktion, Interface                   |
-| `InMemoryTaskRepository.java` | In-Memory-Implementierung des Repositories                       | Polymorphie, Interface-Implementierung   |
-| `TaskManager.java`            | Demo zum manuellen Ausprobieren der Klassen                      | Einstiegspunkt der Anwendung                                        |
-| `TaskTest.java`               | Automatisierte Unit-Tests für die Task-Klasse                    | Unit-Testing                             |
+### Wichtig zu wissen
+- Das Projekt läuft mit **Spring Boot 4.0.5** und **Java 21**.
+- Es gibt sowohl eine `build.gradle.kts` als auch eine `pom.xml` (Maven).
+- Die Anwendung startet auf Port **8080**.
 
-Diese Klassen zeigen wichtige objektorientierte Prinzipien, die in modernen Web-Anwendungen essenziell sind:
-- Vererbung und Abstraktion
-- Kapselung von Daten und Verhalten
-- Verwendung von Enums zur Vermeidung ungültiger Zustände
-- Trennung von Interface und Implementierung (Vorbereitung auf spätere Schichten)
+### Voraussetzungen
+- Java 21 (oder höher)
+- IntelliJ IDEA (empfohlen) oder ein anderer IDE
+- Internetverbindung (zum ersten Mal für das Herunterladen der Dependencies)
 
-## Ausführen der Demo
+### Anwendung starten
 
-```bash
-# Mit Maven
-./mvnw compile exec:java -Dexec.mainClass="de.sp.taskmanager.TaskManager"
+1. Projekt in IntelliJ öffnen
+2. Rechtsklick auf `TaskManagerApplication.java` → **Run**
+3. Die Anwendung startet automatisch auf `http://localhost:8080`
 
-# Mit Gradle (nach Hinzufügen einer Application-Klasse in späteren Terminen)
-./gradlew run
-```
+### Wichtige URLs
 
-## Tests ausführen
+- **REST-API**: `http://localhost:8080/api/tasks`
+- **Swagger-UI** (interaktive Dokumentation): `http://localhost:8080/swagger-ui.html`
+- **H2-Datenbank-Konsole**: `http://localhost:8080/h2-console`  
+  (JDBC-URL: `jdbc:h2:mem:testdb`, Benutzer: `sa`, Passwort: `password`)
 
-```bash
-# Maven
-./mvnw test
+### Login-Daten (Basic Auth)
 
-# Gradle
-./gradlew test
-```
+| Benutzer  | Passwort  | Rolle   |
+|-----------|-----------|---------|
+| `user`    | `password`| USER    |
+| `admin`   | `admin`   | ADMIN   |
 
+### Tests ausführen
+- Alle Tests: Rechtsklick auf `src/test` → **Run Tests**
+- Oder per Maven: `mvn clean test`
+- Oder per Gradle: `./gradlew test`
 
-## Lizenz
+### Weitere Hinweise
+Alle Klassen und Konfigurationsdateien enthalten ausführliche Kommentare mit **Good Practice** und **Wichtig zu wissen** – genau wie in der Vorlesung besprochen.
 
-Dieses Projekt steht unter der [MIT License](LICENSE).
+Viel Erfolg beim Nachvollziehen und Erweitern der Anwendung!
+
+---
+
+*Erstellt für das duale Studium MSD/DMSD an der IU Internationale Hochschule – Termin 2*

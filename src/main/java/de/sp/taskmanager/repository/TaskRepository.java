@@ -1,38 +1,18 @@
 package de.sp.taskmanager.repository;
 
 import de.sp.taskmanager.model.Task;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 /**
- * Interface für den Zugriff auf Tasks.
+ * Dieses Interface ist ein Repository für Tasks, das CRUD-Operationen bereitstellt.
+ * Es erweitert JpaRepository, das Standardmethoden wie save() und findAll() bietet.
  *
- * Dieses Interface abstrahiert den Datenzugriff.
- * Es ermöglicht später, die In-Memory-Implementierung durch eine echte Datenbank-Implementierung
- * (z. B. mit JPA) auszutauschen, ohne den Rest der Anwendung zu ändern.
+ * Good Practice: Repositories abstrahieren den Datenbankzugriff. @Repository markiert es als Spring-Bean.
+ * Keine Implementierung notwendig – Spring generiert sie.
+ *
+ * Wichtig zu wissen: JPA-Repositories vereinfachen Datenbankinteraktionen. Task ist die Entity, Long der ID-Type.
  */
-public interface TaskRepository {
-
-    /**
-     * Speichert eine Task (neu oder aktualisiert).
-     */
-    void save(Task task);
-
-    /**
-     * Sucht eine Task anhand der ID.
-     *
-     * @return Optional mit der Task, falls gefunden, sonst leer
-     */
-    Optional<Task> findById(Long id);
-
-    /**
-     * Gibt alle Tasks zurück.
-     */
-    List<Task> findAll();
-
-    /**
-     * Löscht eine Task.
-     */
-    void delete(Task task);
+@Repository
+public interface TaskRepository extends JpaRepository<Task, Long> {
 }

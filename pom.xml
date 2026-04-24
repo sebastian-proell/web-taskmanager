@@ -1,66 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * BUILD-KONFIGURATION MIT MAVEN (pom.xml)
+ *
+ * Diese Datei ist die zentrale Konfigurationsdatei für Maven-Builds. Sie beschreibt das Projekt,
+ * seine Abhängigkeiten und den Build-Prozess.
+ *
+ * Good Practice: Maven-Projekte verwenden eine standardisierte pom.xml, sodass das Projekt
+ * unabhängig vom verwendeten Build-Tool (Gradle oder Maven) gebaut werden kann.
+ *
+ * Wichtig zu wissen: Maven lädt alle benötigten Bibliotheken automatisch aus dem Internet herunter
+ * und stellt sicher, dass die richtigen Versionen verwendet werden.
+ -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Group und Artifact ID – wichtig für spätere Maven/Gradle-Befehle -->
     <groupId>de.sp</groupId>
-    <artifactId>web-taskmanager</artifactId>
+    <artifactId>taskmanager</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
 
-    <name>TaskManager - Termin 1</name>
-    <description>Objektorientiertes Java-Modell</description>
+    <name>TaskManager - Vorlesungsprojekt</name>
+    <description>Begleitendes Projekt für eine Vorlesung zur Webprogrammierung</description>
 
     <properties>
-        <!-- Wir verwenden Java 21, weil es stabil und zukunftssicher ist -->
         <java.version>21</java.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <spring-boot.version>4.0.5</spring-boot.version>
+        <vaadin.version>25.1.1</vaadin.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <!-- JUnit 5 für Tests – wird nur für Testklassen benötigt -->
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.11.3</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>3.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
-
     <build>
         <plugins>
-            <!-- Konfiguration des Java-Compilers -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
-                <configuration>
-                    <source>21</source>
-                    <target>21</target>
-                </configuration>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
-            <!-- Maven Run Task (exec:java) -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.5.0</version>
-                <configuration>
-                    <mainClass>de.sp.taskmanager.TaskManager</mainClass>
-                </configuration>
-            </plugin>
-
-            <!-- Surefire Plugin für Tests (wichtig!) -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
-            </plugin>
-
         </plugins>
     </build>
 </project>

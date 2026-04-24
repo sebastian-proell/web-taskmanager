@@ -1,43 +1,31 @@
-package de.sp.taskmanager.model;
+package de.sp.taskmanager.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import de.sp.taskmanager.model.TaskStatus;
 import java.time.LocalDateTime;
 
 /**
- * Diese Klasse repräsentiert ein Task-Modell für die Datenbank.
- * Sie ist eine JPA-Entity, die in einer Tabelle gespeichert wird.
+ * Diese Klasse ist ein Data Transfer Object (DTO) für Antworten, die Tasks an den Client senden.
+ * Sie enthält alle relevanten Felder, inklusive ID, für die Rückgabe.
  *
- * Good Practice: Entities werden für Datenpersistenz verwendet. @Enumerated speichert Enums als Strings,
- * um Lesbarkeit zu gewährleisten. Getter/Setter für Kapselung.
+ * Good Practice: Separate DTOs für Request und Response verwenden, falls sie unterschiedlich sind.
+ * Das erlaubt Flexibilität, z. B. sensible Felder in Responses zu verstecken.
  *
- * Wichtig zu wissen: JPA (Jakarta Persistence API) mappt Java-Objekte zu Datenbanktabellen.
- * @Entity markiert diese Klasse als persistierbar.
+ * Wichtig zu wissen: Diese Klasse wird in Controllern verwendet, um Daten als JSON zurückzugeben.
+ * Getter und Setter ermöglichen den Zugriff auf die Felder.
  */
-@Entity
-public class Task {
+public class TaskResponse {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String title;
     private String description;
-
-    @Enumerated(EnumType.STRING)
     private TaskStatus status;
-
     private LocalDateTime dueDate;
     private String assignedTo;
 
     /**
      * Getter für die ID.
      *
-     * Good Practice: IDs werden automatisch generiert (IDENTITY-Strategie für Datenbanken wie MySQL).
+     * Good Practice: IDs sind oft Long, um große Werte zu handhaben. Immer Getter/Setter für alle Felder.
      */
     public Long getId() {
         return id;

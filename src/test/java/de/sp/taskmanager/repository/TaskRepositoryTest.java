@@ -1,58 +1,52 @@
 package de.sp.taskmanager.repository;
 
-import de.sp.taskmanager.model.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
+import de.sp.taskmanager.model.Task;
+import de.sp.taskmanager.model.TaskStatus;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 
-import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
- * Tests für das TaskRepository und seine Implementierungen.
+ * Diese Klasse enthält Integrationstests für das TaskRepository.
+ * DataJpaTest testet nur die JPA-Schicht mit einer In-Memory-Datenbank.
+ *
+ * Good Practice: Repository-Tests konzentrieren sich ausschließlich auf Datenbank-Operationen.
+ * @DataJpaTest lädt nur JPA-Beans und verwendet eine separate Test-Datenbank.
+ *
+ * Wichtig zu wissen: Tests mit @DataJpaTest sind schneller als @SpringBootTest, da nur die
+ * Persistenz-Schicht geladen wird. Die Datenbank wird nach jedem Test automatisch zurückgesetzt.
  */
+@DataJpaTest
 class TaskRepositoryTest {
 
-    private TaskRepository repository;
+    @Autowired
+    private TaskRepository taskRepository;
 
-    @BeforeEach
-    void setUp() {
-        repository = new InMemoryTaskRepository();
-    }
-
+    /**
+     * Testet das Speichern und Abrufen eines Tasks.
+     *
+     * Good Practice: Jeder Test erstellt eigene Testdaten und prüft exakt das erwartete Verhalten.
+     *
+     * Wichtig zu wissen: assertNotNull und assertEquals stammen aus JUnit. Das Repository speichert
+     * das Entity und generiert automatisch eine ID.
+     */
     @Test
-    @DisplayName("Repository sollte eine Task speichern und wiederfinden können")
-    void shouldSaveAndFindTaskById() {
-        Task task = new Task("Test Task", "Beschreibung", TaskPriority.MEDIUM,
-                LocalDate.now().plusDays(3), "Test User");
+    void saveAndFindById_shouldWork() {
+        Task task = new Task();
+        task.setTitle("Test Task");
+        task.setStatus(TaskStatus.OPEN);
+        task.setDueDate(LocalDateTime.now());
 
-        repository.save(task);
+        Task saved = taskRepository.save(task);
 
-        Task found = repository.findById(task.getId()).orElse(null);
-
+        assertNotNull(saved.getId());
+        Task found = taskRepository.findById(saved.getId()).orElse(null);
         assertNotNull(found);
         assertEquals("Test Task", found.getTitle());
-    }
-
-    @Test
-    @DisplayName("Repository sollte alle Tasks zurückgeben")
-    void shouldReturnAllTasks() {
-        repository.save(new Task("Task 1", "...", TaskPriority.LOW, LocalDate.now(), "User1"));
-        repository.save(new Task("Task 2", "...", TaskPriority.HIGH, LocalDate.now(), "User2"));
-
-        List<Task> allTasks = repository.findAll();
-        assertEquals(2, allTasks.size());
-    }
-
-    @Test
-    @DisplayName("Repository sollte eine Task löschen können")
-    void shouldDeleteTask() {
-        Task task = new Task("Zu löschende Task", "...", TaskPriority.LOW, LocalDate.now(), "User");
-        repository.save(task);
-
-        repository.delete(task);
-        assertTrue(repository.findAll().isEmpty());
     }
 }
