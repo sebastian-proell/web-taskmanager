@@ -63,4 +63,6 @@ Viel Erfolg beim Nachvollziehen und Erweitern der Anwendung!
 
 ---
 
-*Erstellt für das duale Studium MSD/DMSD an der IU Internationale Hochschule – Termin 2*
+## Lizenz
+
+Dieses Projekt steht unter der [MIT License](LICENSE).
