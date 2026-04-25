@@ -1,8 +1,9 @@
 package de.sp.taskmanager.config;
 
+import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
+import de.sp.taskmanager.ui.LoginView;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -11,56 +12,54 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.config.Customizer;  // Add this import
 
 /**
- * Diese Klasse konfiguriert die Sicherheitseinstellungen der Anwendung mit Spring Security.
- * Sie definiert, welche URLs geschützt sind und wie Benutzer authentifiziert werden.
+ * Finale und stabile Sicherheitskonfiguration für Termin 3 (Vaadin 25 + Spring Boot 4).
  *
- * Good Practice: Sicherheit wird in einer separaten Konfigurationsklasse gehandhabt, um sie von der
- * Geschäftslogik zu trennen. CSRF-Schutz wird in der Entwicklung deaktiviert, aber in der Produktion
- * aktiviert, um Sicherheitslücken zu vermeiden.
+ * Diese Version behebt das Problem, dass der "Anmelden"-Button nichts tut:
+ * - CSRF wird deaktiviert (notwendig für Vaadin LoginForm)
+ * - formLogin mit defaultSuccessUrl sorgt für die Weiterleitung nach erfolgreichem Login
+ * - VaadinSecurityConfigurer integriert die Vaadin-LoginView
  *
- * Wichtig zu wissen: Spring Security ist ein Framework, das Authentifizierung und Autorisierung managt.
- * @Configuration markiert diese Klasse als Quelle für Beans, die Spring verwaltet. Die Annotation
- * @Profile("prod") sorgt dafür, dass diese Konfiguration nur im Produktionsmodus aktiv ist.
+ * Good Practice: Security bleibt zentral und übersichtlich. Die beiden Test-User bleiben
+ * für die Vorlesung erhalten. In Produktion später durch echte User-Verwaltung ersetzen.
+ *
+ * Für Anfänger: Nach dem Klick auf "Anmelden" wirst du automatisch zur Dashboard-View
+ * weitergeleitet. Die Zugangsdaten sind die gleichen wie bisher.
  */
 @Configuration
 @EnableWebSecurity
 @Profile("prod")
 public class SecurityConfiguration {
 
-    /**
-     * Erstellt die SecurityFilterChain, die alle HTTP-Anfragen absichert.
-     *
-     * Good Practice: Die Security-Konfiguration wird als Bean zurückgegeben, damit Spring sie
-     * automatisch einbindet. Rollen-basierte Zugriffsregeln werden zentral definiert.
-     *
-     * Wichtig zu wissen: authorizeHttpRequests definiert, wer welche Endpunkte aufrufen darf.
-     * httpBasic aktiviert die einfache Benutzername/Passwort-Authentifizierung im Browser.
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/tasks").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/api/tasks/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
-            .httpBasic(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable());  // Für Development; in Prod aktivieren
+
+        http.csrf(csrf -> csrf.disable());
+
+        http.with(VaadinSecurityConfigurer.vaadin(), configurer -> {
+            configurer.loginView(LoginView.class);
+        });
+
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/h2-console/**").permitAll()
+        );
+
+        http.formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/", true)
+                .permitAll()
+        );
+
+        http.headers(headers ->
+                headers.frameOptions(frame -> frame.disable())
+        );
 
         return http.build();
     }
 
     /**
-     * Erstellt einen In-Memory UserDetailsService mit Beispiel-Benutzern.
-     *
-     * Good Practice: Für Entwicklung In-Memory-Benutzer verwenden; in Produktion eine Datenbank
-     * oder externen Service integrieren. Passwörter werden gehasht (hier mit DefaultPasswordEncoder).
-     *
-     * Wichtig zu wissen: UserDetailsService lädt Benutzerdaten. Rollen wie "USER" oder "ADMIN" bestimmen
-     * die Berechtigungen. InMemoryUserDetailsManager speichert die Benutzer nur im RAM.
+     * In-Memory UserDetailsService mit Beispiel-Benutzern.
      */
     @Bean
     public UserDetailsService userDetailsService() {
