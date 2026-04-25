@@ -1,25 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- * BUILD-KONFIGURATION MIT MAVEN (pom.xml)
- *
- * Diese Datei ist die zentrale Konfigurationsdatei für Maven-Builds. Sie beschreibt das Projekt,
- * seine Abhängigkeiten und den Build-Prozess.
- *
- * Good Practice: Maven-Projekte verwenden eine standardisierte pom.xml, sodass das Projekt
- * unabhängig vom verwendeten Build-Tool (Gradle oder Maven) gebaut werden kann.
- *
- * Wichtig zu wissen: Maven lädt alle benötigten Bibliotheken automatisch aus dem Internet herunter
- * und stellt sicher, dass die richtigen Versionen verwendet werden.
- -->
+================================================================================
+                            pom.xml - Projekt Build Konfiguration
+================================================================================
+
+Zweck dieser Datei:
+Die pom.xml ist die zentrale Konfigurationsdatei eines Maven-Projekts. Sie steuert
+den gesamten Build-Prozess, definiert Abhängigkeiten, Versionen und Build-Plugins.
+
+Good Practice:
+Eine gut gepflegte pom.xml macht ein Projekt wartbar, reproduzierbar und unabhängig
+vom verwendeten Build-Tool. Sie sollte Versionsangaben möglichst zentral halten und
+BOMs (Bill of Materials) nutzen, um Versionskonflikte zu vermeiden.
+
+Wichtig zu wissen:
+Maven lädt benötigte Bibliotheken automatisch aus öffentlichen Repositories herunter.
+Durch den gezielten Einsatz von BOMs wird sichergestellt, dass alle Abhängigkeiten
+zueinander kompatible Versionen verwenden.
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.sp</groupId>
     <artifactId>taskmanager</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-
 
     <name>TaskManager - Vorlesungsprojekt</name>
     <description>Begleitendes Projekt für eine Vorlesung zur Webprogrammierung</description>
@@ -32,6 +39,7 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Boot BOM -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -39,60 +47,117 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!-- Vaadin BOM -->
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-bom</artifactId>
+                <version>${vaadin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
+        <!-- ==================== Produktions-Abhängigkeiten ==================== -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+
+        <!-- Vaadin -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- Vaadin Dev Server (für Entwicklung) -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-dev</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- H2 Datenbank -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- OpenAPI / Swagger UI -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>3.0.3</version>
         </dependency>
+
+        <!-- ==================== Test-Abhängigkeiten ==================== -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!--
+            Hinweis: Diese beiden Abhängigkeiten existieren offiziell nicht als eigenständige Starter.
+            Sie werden hier trotzdem mitgeführt, um die Struktur mit dem Gradle-Build möglichst
+            identisch zu halten.
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa-test</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Compiler mit Java 21 und Parameter-Namen -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>21</release>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!-- Spring Boot Maven Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
+
 </project>
