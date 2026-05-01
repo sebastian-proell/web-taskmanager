@@ -1,23 +1,19 @@
-/*
- * BUILD-KONFIGURATION MIT GRADLE (build.gradle.kts)
+/**
+ * build.gradle.kts – Root-Build-Konfiguration des Multi-Module-Projekts.
  *
- * Diese Datei steuert den gesamten Build-Prozess des Projekts. Sie definiert, welche Plugins verwendet werden,
- * welche Java-Version eingesetzt wird und welche Bibliotheken (Dependencies) das Projekt benötigt.
+ * Diese Datei enthält die gemeinsamen Einstellungen für alle Module (spring und frontend).
+ * Plugins, die in mehreren Modulen benötigt werden, werden hier mit „apply false“ deklariert,
+ * damit die einzelnen Module sie bei Bedarf aktivieren können.
  *
- * Good Practice: Alle Abhängigkeiten und Konfigurationen werden zentral in einer Datei verwaltet.
- * Dadurch ist das Projekt auf jedem Rechner reproduzierbar und sofort lauffähig.
+ * Good Practice: Gemeinsame Konfigurationen (Java-Version, Repositories, Group/Version)
+ * werden zentral im Root definiert. Das verhindert Duplizierung und erleichtert Wartung.
  *
- * Wichtig zu wissen: Gradle ist ein Build-Tool, das automatisch Bibliotheken herunterlädt und den Code
- * kompiliert. Die Datei endet auf .kts, weil hier die Kotlin-DSL verwendet wird – eine moderne und typsichere Variante.
+ * Für Anfänger: Diese Datei ist die „Schaltzentrale“ des gesamten Projekts. Hier werden
+ * die Java-Toolchain (Version 21) und die allgemeinen Repositories festgelegt.
  */
-
 plugins {
-    id("java")
-    id("org.springframework.boot") version "4.0.5"
-    id("io.spring.dependency-management") version "1.1.6"
-    // Entferne Kotlin-Plugins, da sie nicht benötigt werden (Projekt ist Java-basiert)
-    // kotlin("jvm") version "2.0.20"  // Für Kotlin-Support, falls benötigt; ansonsten entfernen
-    // kotlin("plugin.spring") version "2.0.20"
+    id("org.springframework.boot") version "4.0.5" apply false
+    id("io.spring.dependency-management") version "1.1.6" apply false
 }
 
 allprojects {
@@ -29,43 +25,17 @@ allprojects {
     }
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
-    sourceCompatibility = JavaVersion.VERSION_21  // Explizit gesetzt für Kompatibilität mit Java 21.
-    targetCompatibility = JavaVersion.VERSION_21
-}
-
-
-
 /**
- * ABHÄNGIGKEITEN (Dependencies) – das Herzstück jeder Spring-Boot-Anwendung
+ * Zentraler Clean-Task für das gesamte Projekt.
  *
- * Good Practice: Alle benötigten Bibliotheken werden zentral in einer Datei verwaltet.
- * Dadurch ist das Projekt auf jedem Rechner (auch bei eurem Praxispartner) sofort lauffähig.
+ * Dieser Task löscht sowohl die Gradle-Artefakte des Spring-Backends als auch
+ * die Build-Artefakte des React-Frontends (node_modules, dist etc.).
  *
- * Wichtig zu wissen: Spring Boot bringt „Starter“ mit – das sind fertige Pakete, die viele Dinge automatisch für euch erledigen.
- * Beispiel: spring-boot-starter-web startet sofort einen Webserver und kann JSON verarbeiten.
+ * Good Practice: Ein zentraler Clean-Task vereinfacht die Entwicklung und verhindert
+ * Inkonsistenzen zwischen Backend und Frontend.
  */
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    runtimeOnly("com.h2database:h2")  // In-Memory-DB für Development
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")  // Für Swagger-UI (optional, für API-Docs)
-    testImplementation("org.springframework.boot:spring-boot-starter-test")  // Enthält JUnit 5, Mockito, etc. für Unit- und Integrationstests (inkl. @MockBean)
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")  // Hinzugefügt
-    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")  // Hinzugefügt für @DataJpaTest und JPA-Test-Support
-    testImplementation("org.springframework.security:spring-security-test")  // Für Security-Tests.
-    testImplementation("org.mockito:mockito-junit-jupiter:5.14.2")  // Explizit für Mockito-Extension in Tests (falls nicht in starter-test enthalten).
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")  // Für JUnit-Plattform in Tests.
-    testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")  // Explizit hinzugefügt für Autokonfiguration von Test-Annotations wie @WebMvcTest, @DataJpaTest usw.
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()  // Aktiviert JUnit 5 für alle Tests.
-    testLogging {  // Logging für bessere Fehlersuche bei Testausfällen.
-        events("passed", "skipped", "failed")
-    }
+tasks.register("cleanAll") {
+    group = "build"
+    description = "Komplettes Clean des gesamten Projekts (backend + Frontend)"
+    dependsOn(":backend:clean", ":frontend:frontendClean")
 }

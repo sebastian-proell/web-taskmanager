@@ -1,50 +1,72 @@
-# TaskManager – Vorlesungsprojekt (Termin 2)
+# TaskManager – Vorlesungsprojekt (Termin 3)
 
-**Grundlegende Spring-Boot REST-API mit JPA, Security und vollständiger Kommentierung**
+**Komponentenbasierte Web-Benutzerschnittstellen mit React und Vite (Multi-Module Maven und Gradle)**
 
-Dieses Projekt ist das offizielle Begleitprojekt für **Termin 2** des Moduls „Programmierung von Web-Anwendungen – webbasierte betriebliche Informationssysteme“.
-
-### Inhalt dieses Termins
-- Spring Boot Grundgerüst mit REST-Controller und CRUD-Endpunkten
-- Domain-Model: `Task`-Entity + `TaskStatus`-Enum + DTOs (`TaskRequest` / `TaskResponse`)
-- Spring Data JPA Repository + Service-Schicht mit Business-Logik
-- SecurityConfiguration mit In-Memory-Benutzern (`user`/`password` und `admin`/`admin`)
-- DataInitializer für Beispiel-Daten
-- H2 In-Memory-Datenbank + H2-Konsole
-- Swagger-UI (springdoc) für interaktive API-Dokumentation
-- Ausführliche Vorlesungskommentare in allen Klassen
-- Vollständige Test-Suite (Unit-, Integration- und Repository-Tests)
+### Inhalt
+- React 18 + Vite + TypeScript
+- Komponentenbasierte UI mit React Router
+- Wiederverwendbare Komponenten (`TaskList`, `TaskForm`, `Layout`, `Dashboard`)
+- Vollständige CRUD-Funktionalität (Erstellen, Lesen, Aktualisieren, Löschen)
+- Basic Auth für die REST-API-Kommunikation
+- CORS-Konfiguration für die Entwicklung
+- Environment-Variablen für sensible Daten
+- Unterstützung für beide Build-Tools (Maven und Gradle)
 
 ### Good Practice
-- Trennung der Schichten (Controller → Service → Repository)
-- Verwendung von DTOs zur Entkopplung von API und Datenbank-Modell
-- Konstruktor-Injection statt Feld-Injection
-- Zentrale Exception-Handling und Security-Konfiguration
+- Trennung von Backend und Frontend in eigenen Modulen
+- Wiederverwendbarkeit von Komponenten im React-Frontend
+- Zentrale Security- und CORS-Konfiguration
+- Environment-Variablen für sensible Daten (Basic Auth)
+- Klare Schichtentrennung
 
 ### Wichtig zu wissen
-- Das Projekt läuft mit **Spring Boot 4.0.5** und **Java 21**.
-- Es gibt sowohl eine `build.gradle.kts` als auch eine `pom.xml` (Maven).
-- Die Anwendung startet auf Port **8080**.
+- Das Projekt läuft mit **Spring Boot 4.0.5**, **Java 21**, **React 18** und **Vite**.
+- Das Backend startet auf Port **8080**, das Frontend-Dev-Server auf Port **5173**.
+- Die REST-API ist mit Basic Auth geschützt (`user`/`password`).
+- Es gibt sowohl Maven (`pom.xml`) als auch Gradle (`build.gradle.kts`) Unterstützung.
 
 ### Voraussetzungen
 - Java 21 (oder höher)
+- Node.js 24.15.0 (oder höher) und npm 11.12.1
 - IntelliJ IDEA (empfohlen) oder ein anderer IDE
 - Internetverbindung (zum ersten Mal für das Herunterladen der Dependencies)
 
 ### Anwendung starten
 
-1. Projekt in IntelliJ öffnen
-2. Rechtsklick auf `TaskManagerApplication.java` → **Run**
-3. Die Anwendung startet automatisch auf `http://localhost:8080`
+#### Mit Maven
+
+```bash
+# 1. Root-Projekt bauen
+./mvnw clean install
+
+# 2. Backend starten (in separatem Terminal)
+./mvnw spring-boot:run -pl backend
+
+# 3. Frontend Development-Server starten (in separatem Terminal)
+cd frontend
+npm run dev
+```
+
+#### Mit Gradle
+
+```bash
+# 1. Root-Projekt bauen
+./gradlew clean build
+
+# 2. Backend starten (in separatem Terminal)
+./gradlew :backend:bootRun
+
+# 3. Frontend Development-Server starten (in separatem Terminal)
+./gradlew :frontend:frontendDev
+```
 
 ### Wichtige URLs
 
+- **React Frontend (Development)**: `http://localhost:5173`
 - **REST-API**: `http://localhost:8080/api/tasks`
-- **Swagger-UI** (interaktive Dokumentation): `http://localhost:8080/swagger-ui.html`
-- **H2-Datenbank-Konsole**: `http://localhost:8080/h2-console`  
-  (JDBC-URL: `jdbc:h2:mem:testdb`, Benutzer: `sa`, Passwort: `password`)
+- **Swagger-UI**: `http://localhost:8080/swagger-ui.html`
 
-### Login-Daten (Basic Auth)
+### Login-Daten (Basic Auth für React-Frontend)
 
 | Benutzer  | Passwort  | Rolle   |
 |-----------|-----------|---------|
@@ -52,12 +74,16 @@ Dieses Projekt ist das offizielle Begleitprojekt für **Termin 2** des Moduls �
 | `admin`   | `admin`   | ADMIN   |
 
 ### Tests ausführen
+
 - Alle Tests: Rechtsklick auf `src/test` → **Run Tests**
 - Oder per Maven: `mvn clean test`
 - Oder per Gradle: `./gradlew test`
 
 ### Weitere Hinweise
-Alle Klassen und Konfigurationsdateien enthalten ausführliche Kommentare mit **Good Practice** und **Wichtig zu wissen** – genau wie in der Vorlesung besprochen.
+
+Alle Klassen und Konfigurationsdateien enthalten ausführliche Kommentare mit **Good Practices**.
+
+Das Projekt ist bewusst so aufgebaut, dass sowohl Maven als auch Gradle parallel verwendet werden können.
 
 Viel Erfolg beim Nachvollziehen und Erweitern der Anwendung!
 

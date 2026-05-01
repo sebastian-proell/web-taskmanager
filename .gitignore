@@ -29,3 +29,7 @@ build
 
 # Ignore Kotlin plugin data
 .kotlin
+
+/frontend/dist/
+/frontend/node/
+/frontend/node_modules/
