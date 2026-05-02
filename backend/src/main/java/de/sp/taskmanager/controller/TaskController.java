@@ -18,7 +18,7 @@ import java.util.List;
  * wie TaskRequest und TaskResponse werden verwendet, um nur notwendige Daten über das Netzwerk zu senden
  * und die internen Modelle zu schützen.
  *
- * Für Anfänger: REST steht für Representational State Transfer – es ist ein Stil, APIs zu bauen.
+ * Wichtig zu wissen: REST steht für Representational State Transfer – es ist ein Stil, APIs zu bauen.
  * @RestController sagt Spring, dass diese Klasse HTTP-Requests verarbeitet und JSON zurückgibt.
  * Controller-Klassen gehören in ein 'controller'-Package für Übersichtlichkeit.
  */

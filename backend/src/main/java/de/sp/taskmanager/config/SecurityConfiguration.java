@@ -27,7 +27,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
  * Good Practice: CORS und Security werden zentral in einer Konfigurationsklasse definiert.
  * Die REST-API ist für das React-Frontend zugänglich.
  *
- * Für Anfänger: Das React-Frontend sendet Benutzername und Passwort im Authorization-Header.
+ * Wichtig zu wissen: Das React-Frontend sendet Benutzername und Passwort im Authorization-Header.
  * Die CORS-Regeln erlauben dem Browser, Anfragen vom Development-Server (5173) an das Backend (8080) zu stellen.
  */
 @Configuration
@@ -67,7 +67,7 @@ public class SecurityConfiguration {
      * Good Practice: CORS wird als eigenständige Bean definiert, damit sie klar von der
      * Security-Konfiguration getrennt ist.
      *
-     * Für Anfänger: Diese Konfiguration erlaubt dem Browser auf Port 5173, Anfragen an
+     * Wichtig zu wissen: Diese Konfiguration erlaubt dem Browser auf Port 5173, Anfragen an
      * das Backend auf Port 8080 zu stellen und den Authorization-Header zu verwenden.
      */
     @Bean
@@ -92,7 +92,7 @@ public class SecurityConfiguration {
      * Good Practice: Für Entwicklung und Vorlesung In-Memory-Benutzer verwenden.
      * In Produktion sollte eine Datenbank oder ein externer Authentifizierungsdienst verwendet werden.
      *
-     * Für Anfänger: Die beiden Test-Benutzer sind:
+     * Wichtig zu wissen: Die beiden Test-Benutzer sind:
      * - Benutzer: user / Passwort: password
      * - Admin:   admin / Passwort: admin
      */

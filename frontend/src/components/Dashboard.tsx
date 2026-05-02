@@ -7,7 +7,7 @@
  * Good Practice: Eine separate Dashboard-Komponente dient als Einstiegspunkt
  * und kann später mit Statistiken oder Übersichten erweitert werden.
  *
- * Für Anfänger: Diese Komponente wird angezeigt, wenn der Benutzer
+ * Wichtig zu wissen: Diese Komponente wird angezeigt, wenn der Benutzer
  * auf der Startseite ist. Sie enthält nur statischen Inhalt.
  */
 export default function Dashboard() {

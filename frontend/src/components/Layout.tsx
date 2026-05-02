@@ -9,7 +9,7 @@ import { Link, useLocation } from 'react-router-dom'
  * Good Practice: Ein zentrales Layout sorgt für konsistentes Design
  * und erleichtert die spätere Erweiterung der Anwendung.
  *
- * Für Anfänger: Die Navigation wird mit React Router Links realisiert.
+ * Wichtig zu wissen: Die Navigation wird mit React Router Links realisiert.
  * Der aktive Link wird automatisch hervorgehoben.
  */
 export default function Layout({ children }: { children: React.ReactNode }) {

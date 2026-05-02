@@ -12,7 +12,7 @@ import TaskList from './components/TaskList.tsx'
  * Good Practice: React Router ermöglicht deklarative Navigation
  * und ein zentrales Layout für ein einheitliches Erscheinungsbild.
  *
- * Für Anfänger: Die App-Komponente ist der zentrale Container.
+ * Wichtig zu wissen: Die App-Komponente ist der zentrale Container.
  * Alle anderen Komponenten werden über das Routing hier eingebunden.
  */
 function App() {

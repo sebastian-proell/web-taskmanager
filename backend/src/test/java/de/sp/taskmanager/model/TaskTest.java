@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * bevor die Klasse in Service, Repository oder Controller verwendet wird.
  * Das erleichtert späteres Refactoring und macht den Code wartbar.
  *
- * Für Anfänger: @Test-Methoden testen einzelne Verhaltensweisen (Single Responsibility).
+ * Wichtig zu wissen: @Test-Methoden testen einzelne Verhaltensweisen (Single Responsibility).
  * @BeforeEach sorgt dafür, dass vor jedem Test ein frisches Task-Objekt existiert.
  * Wir verwenden JUnit 5 (bereits im Spring-Boot-Starter-Test enthalten).
  */

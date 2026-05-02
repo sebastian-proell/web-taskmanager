@@ -22,7 +22,7 @@ interface Task {
  * Good Practice: Die Zugangsdaten werden aus Environment-Variablen geladen
  * und nie hartcodiert im Quellcode gespeichert. Das erhöht die Sicherheit.
  *
- * Für Anfänger: Die Komponente verwendet React Hooks (useState, useEffect),
+ * Wichtig zu wissen: Die Komponente verwendet React Hooks (useState, useEffect),
  * um Daten zu verwalten und API-Aufrufe durchzuführen.
  */
 export default function TaskList() {

@@ -8,7 +8,7 @@
  * Good Practice: Gemeinsame Konfigurationen (Java-Version, Repositories, Group/Version)
  * werden zentral im Root definiert. Das verhindert Duplizierung und erleichtert Wartung.
  *
- * Für Anfänger: Diese Datei ist die „Schaltzentrale“ des gesamten Projekts. Hier werden
+ * Wichtig zu wissen: Diese Datei ist die „Schaltzentrale“ des gesamten Projekts. Hier werden
  * die Java-Toolchain (Version 21) und die allgemeinen Repositories festgelegt.
  */
 plugins {

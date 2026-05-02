@@ -17,7 +17,7 @@ interface TaskFormProps {
  * Good Practice: Die Formularlogik (Zustand, Validierung, API-Aufruf) ist
  * vollständig in dieser Komponente gekapselt – sie ist wiederverwendbar.
  *
- * Für Anfänger: Die Komponente verwendet "Controlled Components" – der Wert
+ * Wichtig zu wissen: Die Komponente verwendet "Controlled Components" – der Wert
  * jedes Eingabefelds wird über den React-State gesteuert.
  */
 export default function TaskForm({ task, onSaved }: TaskFormProps) {

@@ -21,7 +21,7 @@
         Mit dem frontend-maven-plugin wird Node.js/npm/Vite vollständig in den Maven-Build integriert.
         Dadurch kann das gesamte Projekt (Backend + Frontend) mit Maven gebaut werden.
 
-        Für Anfänger: Dieses Modul enthält das React-Frontend. Es wird automatisch mit dem
+        Wichtig zu wissen: Dieses Modul enthält das React-Frontend. Es wird automatisch mit dem
         Backend zusammen gebaut.
     -->
 

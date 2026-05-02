@@ -12,7 +12,7 @@ import './index.css'
  * Good Practice: React.StrictMode aktiviert zusätzliche Prüfungen
  * in der Entwicklung, um potenzielle Probleme frühzeitig zu erkennen.
  *
- * Für Anfänger: Dies ist der erste Code, der beim Start der Anwendung
+ * Wichtig zu wissen: Dies ist der erste Code, der beim Start der Anwendung
  * ausgeführt wird. Er verbindet React mit dem DOM.
  */
 ReactDOM.createRoot(document.getElementById('root')!).render(
