@@ -21,13 +21,23 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * Diese Klasse enthält Unit-Tests für den TaskService.
- * Der Service wird isoliert getestet, das Repository wird gemockt.
+ * TaskServiceTest – Unit-Tests für den TaskService (Termin 4).
  *
- * Good Practice: MockitoExtension ermöglicht sauberes Mocking. Jeder Test prüft eine einzelne Methode.
+ * Good Practice: @ExtendWith(MockitoExtension.class) ermöglicht sauberes, isoliertes Testen
+ * der Service-Schicht. Das Repository wird gemockt, sodass nur die Geschäftslogik getestet wird.
+ * Jeder Test prüft genau eine Methode und deckt sowohl Happy-Path als auch Fehlerfälle ab.
  *
- * Wichtig zu wissen: @ExtendWith(MockitoExtension.class) aktiviert Mockito. @Mock erstellt einen
- * simulierten Repository, @InjectMocks fügt ihn in den Service ein.
+ * Die Tests wurden an die neue TaskRequest-Record-Struktur angepasst (mit Validierungs-
+ * Annotationen aus Termin 4). Statt new TaskRequest() + Setter wird jetzt der kanonische
+ * Record-Konstruktor mit allen Feldern verwendet.
+ *
+ * Wichtig zu wissen:
+ * Da TaskRequest ein Java-Record ist (Best Practice für immutable DTOs), gibt es keinen
+ * parameterlosen Konstruktor und keine Setter mehr. Stattdessen muss bei jeder Instanziierung
+ * der vollständige Konstruktor mit allen Feldern aufgerufen werden. Das verhindert unvollständige
+ * oder ungültige Daten schon beim Erstellen des Objekts und sorgt für type-sichere, wartbare Tests.
+ * Die Tests demonstrieren gleichzeitig die erweiterte Validierung und das saubere API-Design
+ * aus Termin 4 (Validierung von Benutzereingaben + Fehlermeldungen).
  */
 @ExtendWith(MockitoExtension.class)
 class TaskServiceTest {
@@ -43,7 +53,7 @@ class TaskServiceTest {
     /**
      * Setzt Testdaten vor jedem Test auf.
      *
-     * Good Practice: @BeforeEach sorgt für eine saubere Ausgangslage für jeden Test.
+     * Good Practice: @BeforeEach sorgt für eine saubere, reproduzierbare Ausgangslage.
      */
     @BeforeEach
     void setUp() {
@@ -85,8 +95,6 @@ class TaskServiceTest {
 
     /**
      * Testet das Abrufen eines Tasks per ID, wenn es nicht existiert.
-     *
-     * Good Practice: Fehlerfälle werden explizit getestet.
      */
     @Test
     void getTaskById_shouldThrowException_whenNotFound() {
@@ -98,15 +106,18 @@ class TaskServiceTest {
 
     /**
      * Testet das Erstellen eines neuen Tasks.
+     * Verwendet jetzt den kanonischen Record-Konstruktor von TaskRequest.
      */
     @Test
     void createTask_shouldSaveAndReturnTask() {
-        TaskRequest request = new TaskRequest();
-        request.setTitle("New Task");
-        request.setDescription("Desc");
-        request.setStatus(TaskStatus.OPEN);
-        request.setDueDate(LocalDateTime.now());
-        request.setAssignedTo("user");
+        // Record-Konstruktor mit allen Feldern (keine Setter mehr möglich)
+        TaskRequest request = new TaskRequest(
+                "New Task",                                 // title
+                "Desc",                                     // description
+                "OPEN",                                     // status (String – passt zur @Pattern-Validierung)
+                LocalDateTime.now().plusDays(1),            // dueDate
+                "user"                                      // assignedTo
+        );
 
         when(taskRepository.save(any(Task.class))).thenReturn(testTask);
 

@@ -1,6 +1,6 @@
-# TaskManager – Vorlesungsprojekt (Termin 3)
+# TaskManager – Vorlesungsprojekt (Termin 4)
 
-**Komponentenbasierte Web-Benutzerschnittstellen mit React und Vite (Multi-Module Maven und Gradle)**
+**API-Design, Validierung von Benutzereingaben, Fehlermeldungen und Fehlerbehandlung mit Spring Boot**
 
 ### Inhalt
 - React 18 + Vite + TypeScript
@@ -11,19 +11,26 @@
 - CORS-Konfiguration für die Entwicklung
 - Environment-Variablen für sensible Daten
 - Unterstützung für beide Build-Tools (Maven und Gradle)
-
+- **Neu in Termin 4:**
+    - Deklarative Validierung mit Jakarta Bean Validation (@NotBlank, @Size, @FutureOrPresent, @Pattern)
+    - Strukturierte JSON-Fehlermeldungen über `@RestControllerAdvice`
+    - Erweiterte DTOs als Java Records (TaskRequest)
+    
 ### Good Practice
 - Trennung von Backend und Frontend in eigenen Modulen
 - Wiederverwendbarkeit von Komponenten im React-Frontend
 - Zentrale Security- und CORS-Konfiguration
 - Environment-Variablen für sensible Daten (Basic Auth)
 - Klare Schichtentrennung
+- Deklarative Validierung direkt im DTO (keine manuelle Prüfung im Controller)
+- Globale, einheitliche Fehlerbehandlung für alle Endpunkte
 
 ### Wichtig zu wissen
 - Das Projekt läuft mit **Spring Boot 4.0.5**, **Java 21**, **React 18** und **Vite**.
 - Das Backend startet auf Port **8080**, das Frontend-Dev-Server auf Port **5173**.
 - Die REST-API ist mit Basic Auth geschützt (`user`/`password`).
 - Es gibt sowohl Maven (`pom.xml`) als auch Gradle (`build.gradle.kts`) Unterstützung.
+- Termin 4-Funktionen (Validierung, strukturierte Fehler, Formatierung) sind vollständig implementiert und durch Tests abgesichert.
 
 ### Voraussetzungen
 - Java 21 (oder höher)
@@ -40,11 +47,10 @@
 ./mvnw clean install
 
 # 2. Backend starten (in separatem Terminal)
-./mvnw spring-boot:run -pl backend
+./mvnw -pl backend spring-boot:run 
 
 # 3. Frontend Development-Server starten (in separatem Terminal)
-cd frontend
-npm run dev
+./mvnw -pl frontend frontend:npm@npm-dev
 ```
 
 #### Mit Gradle
@@ -76,7 +82,7 @@ npm run dev
 ### Tests ausführen
 
 - Alle Tests: Rechtsklick auf `src/test` → **Run Tests**
-- Oder per Maven: `mvn clean test`
+- Oder per Maven: `./mvnw clean test`
 - Oder per Gradle: `./gradlew test`
 
 ### Weitere Hinweise

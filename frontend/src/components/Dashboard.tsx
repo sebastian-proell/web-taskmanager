@@ -14,7 +14,7 @@ export default function Dashboard() {
     return (
         <div>
             <h2>Willkommen im TaskManager</h2>
-            <p>Dies ist die React-Variante der komponentenbasierten Web-Benutzerschnittstelle (Termin 3).</p>
+            <p>Dies ist die React-Variante der komponentenbasierten Web-Benutzerschnittstelle (Termin 4).</p>
             <p>Navigieren Sie über das Menü zu den Aufgaben.</p>
         </div>
     )

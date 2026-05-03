@@ -1,151 +1,207 @@
-import { useState, useEffect } from 'react'
-
-interface TaskFormProps {
-    task?: any          // Optional: Task, der bearbeitet werden soll
-    onSaved: () => void // Callback, der nach erfolgreichem Speichern aufgerufen wird
-}
+import React, { useState } from 'react';
+import ValidationErrorDisplay from './ValidationErrorDisplay';
+import TaskFormField from './TaskFormField';
 
 /**
- * TaskForm-Komponente – Formular zum Anlegen und Bearbeiten von Tasks.
+ * TaskForm.tsx ist die zentrale Komponente zur Erstellung und Bearbeitung von Tasks.
  *
- * Diese Komponente:
- * - Zeigt ein Formular mit allen Task-Feldern an
- * - Erkennt automatisch, ob ein neuer Task angelegt oder ein bestehender bearbeitet wird
- * - Sendet die Daten per POST (neu) oder PUT (bearbeiten) an das Backend
- * - Setzt das Formular nach dem Speichern zurück
+ * Sie verarbeitet das Formular, sendet Daten an die REST-API und delegiert die
+ * komplette Fehler- und Erfolgsdarstellung an wiederverwendbare Sub-Komponenten.
  *
- * Good Practice: Die Formularlogik (Zustand, Validierung, API-Aufruf) ist
- * vollständig in dieser Komponente gekapselt – sie ist wiederverwendbar.
+ * Good Practice:
+ * - Controlled Components mit minimalem Boilerplate
+ * - Auslagerung der Fehlerdarstellung und Feld-Rendering in separate Komponenten
+ * - Klare Trennung von Form-Logik, API-Aufruf und Präsentation
+ * - Automatisches Zurücksetzen von Fehlern bei erneuter Eingabe
  *
- * Wichtig zu wissen: Die Komponente verwendet "Controlled Components" – der Wert
- * jedes Eingabefelds wird über den React-State gesteuert.
+ * Wichtig zu wissen:
+ * Die Komponente verarbeitet Validierungsfehler aus dem Backend als Objekt
+ * („errors“) und leitet sie an ValidationErrorDisplay weiter. Durch die Nutzung
+ * von TaskFormField wird der Code übersichtlich gehalten und unterstützt eine
+ * konsistente, feldgenaue Fehleranzeige bei POST-Requests.
  */
-export default function TaskForm({ task, onSaved }: TaskFormProps) {
-    // Formular-Zustand – wird bei jedem Tastendruck aktualisiert
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        status: 'OPEN',
-        dueDate: '',
-        assignedTo: ''
-    })
+const TaskForm: React.FC = () => {
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [status, setStatus] = useState('OPEN');
+    const [dueDate, setDueDate] = useState('');
+    const [assignedTo, setAssignedTo] = useState('');
 
-    // Zugangsdaten aus Environment-Variablen laden
-    const username = import.meta.env.VITE_API_USERNAME
-    const password = import.meta.env.VITE_API_PASSWORD
+    const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+    const [generalError, setGeneralError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [rawErrorDebug, setRawErrorDebug] = useState<any>(null);
 
-    /**
-     * useEffect – wird ausgeführt, wenn sich der übergebene "task"-Prop ändert.
-     *
-     * Wenn ein Task zum Bearbeiten übergeben wird, werden die Formularfelder
-     * mit den vorhandenen Werten gefüllt. Bei einem neuen Task bleibt das
-     * Formular leer.
-     */
-    useEffect(() => {
-        if (task) {
-            setFormData({
-                title: task.title,
-                description: task.description || '',
-                status: task.status,
-                dueDate: task.dueDate ? task.dueDate.substring(0, 16) : '',
-                assignedTo: task.assignedTo || ''
-            })
+    const username = 'user';
+    const password = 'password';
+    const authHeader = 'Basic ' + btoa(`${username}:${password}`);
+
+    const resetFieldError = (field: string) => {
+        if (fieldErrors[field]) {
+            setFieldErrors(prev => {
+                const updated = { ...prev };
+                delete updated[field];
+                return updated;
+            });
         }
-    }, [task])
+    };
 
-    /**
-     * Verarbeitet das Absenden des Formulars.
-     *
-     * Je nachdem, ob ein Task bearbeitet wird oder nicht, wird entweder
-     * ein PUT-Request (Update) oder ein POST-Request (Create) gesendet.
-     */
+    const handleValidationErrors = (errorData: any) => {
+        console.log('🔍 RAW Backend Error Response:', errorData);
+        setRawErrorDebug(errorData);
+
+        const errors: { [key: string]: string } = {};
+
+        if (errorData.errors && typeof errorData.errors === 'object' && !Array.isArray(errorData.errors)) {
+            Object.entries(errorData.errors).forEach(([field, message]) => {
+                if (field && typeof message === 'string') {
+                    errors[field] = message;
+                }
+            });
+        } else if (errorData.errors && Array.isArray(errorData.errors)) {
+            errorData.errors.forEach((err: any) => {
+                const fieldName = err.field || err.objectName || 'unknown';
+                const message = err.defaultMessage || err.message || 'Ungültiger Wert';
+                if (fieldName !== 'unknown') {
+                    errors[fieldName] = message;
+                }
+            });
+        }
+
+        setFieldErrors(errors);
+
+        if (Object.keys(errors).length === 0) {
+            const fallbackMsg = errorData.message || errorData.error || 'Validierungsfehler – bitte prüfen Sie die Eingaben.';
+            setGeneralError(fallbackMsg);
+        } else {
+            setGeneralError(null);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault() // Verhindert das Standard-Formular-Verhalten (Seiten-Reload)
+        e.preventDefault();
+        setIsSubmitting(true);
+        setGeneralError(null);
+        setSuccessMessage(null);
+        setRawErrorDebug(null);
 
-        const credentials = btoa(`${username}:${password}`)
-
-        // URL und HTTP-Methode abhängig vom Modus (neu oder bearbeiten) wählen
-        const url = task
-            ? `http://localhost:8080/api/tasks/${task.id}`
-            : 'http://localhost:8080/api/tasks'
-
-        const method = task ? 'PUT' : 'POST'
+        const taskData = {
+            title,
+            description,
+            status,
+            dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+            assignedTo
+        };
 
         try {
-            const response = await fetch(url, {
-                method: method,
+            const response = await fetch('http://localhost:8080/api/tasks', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Basic ${credentials}`
+                    'Authorization': authHeader
                 },
-                body: JSON.stringify(formData)
-            })
+                body: JSON.stringify(taskData)
+            });
 
             if (response.ok) {
-                onSaved() // Parent-Komponente (TaskList) benachrichtigen
-                // Formular zurücksetzen
-                setFormData({ title: '', description: '', status: 'OPEN', dueDate: '', assignedTo: '' })
+                const createdTask = await response.json();
+                setSuccessMessage(`Task "${createdTask.title}" erfolgreich erstellt!`);
+                setTitle(''); setDescription(''); setStatus('OPEN'); setDueDate(''); setAssignedTo('');
+                setFieldErrors({});
+            } else if (response.status === 400) {
+                const errorData = await response.json();
+                console.log('📡 HTTP 400 Response Body:', errorData);
+                handleValidationErrors(errorData);
             } else {
-                console.error('Save failed with status', response.status)
+                const errorText = await response.text();
+                console.error('❌ Unerwarteter HTTP-Status:', response.status, errorText);
+                setGeneralError('Unerwarteter Server-Fehler. Bitte später erneut versuchen.');
             }
-        } catch (err) {
-            console.error('Error saving task', err)
+        } catch (error) {
+            console.error('🚨 Netzwerk- oder JSON-Fehler:', error);
+            setGeneralError('Verbindung zum Server fehlgeschlagen. Ist das Backend gestartet?');
+        } finally {
+            setIsSubmitting(false);
         }
-    }
+    };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <h3>{task ? 'Task bearbeiten' : 'Neuen Task anlegen'}</h3>
+        <div className="task-form-container">
+            <h2>Neuen Task erstellen</h2>
 
-            <label>Titel</label>
-            <input
-                type="text"
-                value={formData.title}
-                onChange={e => setFormData({...formData, title: e.target.value})}
-                required
+            <ValidationErrorDisplay
+                fieldErrors={fieldErrors}
+                rawErrorDebug={rawErrorDebug}
+                generalError={generalError}
+                successMessage={successMessage}
             />
 
-            <label>Beschreibung</label>
-            <textarea
-                value={formData.description}
-                onChange={e => setFormData({...formData, description: e.target.value})}
-            />
+            <form onSubmit={handleSubmit}>
+                <TaskFormField
+                    id="title"
+                    label="Titel"
+                    type="text"
+                    value={title}
+                    onChange={(e) => { setTitle(e.target.value); resetFieldError('title'); }}
+                    error={fieldErrors.title}
+                    required
+                    disabled={isSubmitting}
+                />
 
-            <label>Status</label>
-            <select
-                value={formData.status}
-                onChange={e => setFormData({...formData, status: e.target.value})}
-            >
-                <option value="OPEN">Open</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="BLOCKED">Blocked</option>
-            </select>
+                <TaskFormField
+                    id="description"
+                    label="Beschreibung"
+                    type="textarea"
+                    value={description}
+                    onChange={(e) => { setDescription(e.target.value); resetFieldError('description'); }}
+                    error={fieldErrors.description}
+                    disabled={isSubmitting}
+                />
 
-            <label>Fälligkeitsdatum</label>
-            <input
-                type="datetime-local"
-                value={formData.dueDate}
-                onChange={e => setFormData({...formData, dueDate: e.target.value})}
-            />
+                <TaskFormField
+                    id="status"
+                    label="Status"
+                    type="select"
+                    value={status}
+                    onChange={(e) => { setStatus(e.target.value); resetFieldError('status'); }}
+                    error={fieldErrors.status}
+                    options={[
+                        { value: 'OPEN', label: 'Offen' },
+                        { value: 'IN_PROGRESS', label: 'In Bearbeitung' },
+                        { value: 'COMPLETED', label: 'Abgeschlossen' },
+                        { value: 'BLOCKED', label: 'Blockiert' }
+                    ]}
+                    required
+                    disabled={isSubmitting}
+                />
 
-            <label>Zugewiesen an</label>
-            <input
-                type="text"
-                value={formData.assignedTo}
-                onChange={e => setFormData({...formData, assignedTo: e.target.value})}
-            />
+                <TaskFormField
+                    id="dueDate"
+                    label="Fälligkeitsdatum"
+                    type="datetime-local"
+                    value={dueDate}
+                    onChange={(e) => { setDueDate(e.target.value); resetFieldError('dueDate'); }}
+                    error={fieldErrors.dueDate}
+                    disabled={isSubmitting}
+                />
 
-            <button type="submit">
-                {task ? 'Aktualisieren' : 'Speichern'}
-            </button>
+                <TaskFormField
+                    id="assignedTo"
+                    label="Zugewiesen an"
+                    type="text"
+                    value={assignedTo}
+                    onChange={(e) => { setAssignedTo(e.target.value); resetFieldError('assignedTo'); }}
+                    error={fieldErrors.assignedTo}
+                    disabled={isSubmitting}
+                />
 
-            {/* Abbrechen-Button nur im Bearbeitungsmodus anzeigen */}
-            {task && (
-                <button type="button" onClick={() => onSaved()} style={{ marginLeft: '10px' }}>
-                    Abbrechen
+                <button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Wird gespeichert...' : 'Task erstellen'}
                 </button>
-            )}
-        </form>
-    )
-}
+            </form>
+        </div>
+    );
+};
+
+export default TaskForm;

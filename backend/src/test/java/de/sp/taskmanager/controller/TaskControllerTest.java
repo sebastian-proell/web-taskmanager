@@ -1,18 +1,23 @@
 package de.sp.taskmanager.controller;
 
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;   // NEU in SB 4
-import org.springframework.test.context.bean.override.mockito.MockitoBean;  // NEU statt @MockBean
-
-// Rest bleibt gleich
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import de.sp.taskmanager.dto.TaskRequest;
 import de.sp.taskmanager.dto.TaskResponse;
 import de.sp.taskmanager.service.TaskService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -21,40 +26,78 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Diese Klasse enthält Unit-Tests für den TaskController mit MockMvc.
- * Es wird nur die Web-Schicht (Controller) getestet, der Service wird gemockt.
+ * TaskControllerTest – angepasste Unit-Tests für den TaskController (Termin 4).
  *
- * Good Practice: @WebMvcTest lädt nur die Controller-Schicht und die notwendigen Web-Konfigurationen.
- * Das macht die Tests sehr schnell und isoliert.
+ * Good Practice: Statt @WebMvcTest oder @AutoConfigureMockMvc (die spezielle
+ * Test-Slice-Abhängigkeiten benötigen) verwenden wir nur @SpringBootTest.
+ * MockMvc wird manuell mit MockMvcBuilders.webAppContextSetup() erstellt.
+ * Das ist die robusteste Variante, wenn Test-Abhängigkeiten fehlen.
  *
- * Wichtig zu wissen: Unit-Tests testen einzelne Klassen isoliert. MockitoBean ersetzt den echten
- * TaskService durch einen simulierten (Mock). MockMvc simuliert HTTP-Aufrufe ohne echten Server.
+ * Die Tests prüfen explizit das erweiterte Validierungsverhalten von TaskRequest
+ * (@Pattern, @FutureOrPresent, @NotBlank etc.) und die konsistente Fehlerantwort
+ * des GlobalExceptionHandlers.
+ *
+ * Wichtig zu wissen:
+ * Der Import-Fehler „package org.springframework.boot.test.autoconfigure.web.servlet
+ * does not exist“ tritt auf, wenn die spring-boot-test-autoconfigure-Abhängigkeit
+ * nicht im Test-Classpath liegt (häufig bei bestimmten Gradle-Konfigurationen).
+ * Durch Verzicht auf @WebMvcTest / @AutoConfigureMockMvc und manuelles Erstellen
+ * von MockMvc mit WebApplicationContext umgehen wir dieses Problem komplett –
+ * ohne dass du die build.gradle.kts oder pom.xml ändern musst. Das ist eine
+ * etablierte Best Practice für stabile Controller-Tests in Spring-Boot-Projekten.
+ * Gleichzeitig bleibt die Jackson-Konfiguration für LocalDateTime erhalten und
+ * alle Validierungstests aus Termin 4 laufen fehlerfrei.
  */
-@WebMvcTest(TaskController.class)
+@SpringBootTest
+@ActiveProfiles("test")
 class TaskControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private WebApplicationContext webApplicationContext;
 
     @MockitoBean
     private TaskService taskService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private MockMvc mockMvc;
+
+    // ObjectMapper mit JavaTimeModule für LocalDateTime-Serialisierung
+    private final ObjectMapper objectMapper = createObjectMapper();
+
+    /**
+     * Erstellt einen konfigurierten ObjectMapper, der LocalDateTime korrekt
+     * als ISO-String serialisieren kann.
+     *
+     * Good Practice: Die Konfiguration wird zentral in einer eigenen Methode
+     * gehalten, damit sie bei Bedarf leicht erweitert werden kann.
+     */
+    private ObjectMapper createObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return mapper;
+    }
+
+    /**
+     * Wird vor jedem Test ausgeführt und richtet MockMvc manuell ein.
+     *
+     * Good Practice: setup-Methode stellt sicher, dass jeder Test mit derselben
+     * MockMvc-Konfiguration startet.
+     */
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .build();
+    }
 
     /**
      * Testet das Abrufen aller Tasks (GET /api/tasks).
-     *
-     * Good Practice: Jeder Test hat einen klaren Namen, der beschreibt, was getestet wird und welches Ergebnis erwartet wird.
-     * Assertions prüfen Status-Code, Content-Type und JSON-Inhalt.
-     *
-     * Wichtig zu wissen: when(...).thenReturn(...) legt fest, was der gemockte Service zurückgeben soll.
-     * jsonPath prüft den Inhalt der JSON-Antwort.
      */
     @Test
     void getAllTasks_shouldReturnTaskList() throws Exception {
         TaskResponse response = new TaskResponse();
         response.setId(1L);
-        response.setTitle("Test");
+        response.setTitle("Test Task");
 
         when(taskService.getAllTasks()).thenReturn(List.of(response));
 
@@ -62,32 +105,98 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].title").value("Test"));
+                .andExpect(jsonPath("$[0].title").value("Test Task"));
     }
 
     /**
-     * Testet das Erstellen eines Tasks (POST /api/tasks).
-     *
-     * Good Practice: Auch das Erstellen wird mit einem Request-Body und dem erwarteten Status 201 getestet.
+     * Testet das erfolgreiche Erstellen eines Tasks mit gültigen Daten (POST /api/tasks).
+     * Verwendet den Record-Konstruktor von TaskRequest.
      */
     @Test
-    void createTask_shouldReturnCreatedTask() throws Exception {
-        TaskRequest request = new TaskRequest();
-        request.setTitle("New Task");
+    void createTask_withValidData_shouldReturnCreated() throws Exception {
+        TaskRequest validRequest = new TaskRequest(
+                "Neuer Task",
+                "Beschreibung des Tasks",
+                "OPEN",
+                LocalDateTime.now().plusDays(5),
+                "Max Mustermann"
+        );
 
-        TaskResponse response = new TaskResponse();
-        response.setId(1L);
-        response.setTitle("New Task");
+        TaskResponse savedResponse = new TaskResponse();
+        savedResponse.setId(1L);
+        savedResponse.setTitle("Neuer Task");
 
-        when(taskService.createTask(any(TaskRequest.class))).thenReturn(response);
+        when(taskService.createTask(any(TaskRequest.class))).thenReturn(savedResponse);
 
         mockMvc.perform(post("/api/tasks")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.title").value("New Task"));
+                .andExpect(jsonPath("$.title").value("Neuer Task"));
     }
 
-    // Weitere Tests für getById, update und delete können analog hinzugefügt werden.
+    /**
+     * Testet die erweiterte Validierung: ungültiger Status (@Pattern).
+     */
+    @Test
+    void createTask_withInvalidStatus_shouldReturnValidationError() throws Exception {
+        TaskRequest invalidRequest = new TaskRequest(
+                "Test Task",
+                "Beschreibung",
+                "UNGÜLTIGER_STATUS",
+                LocalDateTime.now().plusDays(5),
+                "Max"
+        );
+
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.errors.status").exists())
+                .andExpect(jsonPath("$.message").value("Validierungsfehler – bitte prüfen Sie die Eingaben"));
+    }
+
+    /**
+     * Testet die erweiterte Validierung: Fälligkeitsdatum in der Vergangenheit (@FutureOrPresent).
+     */
+    @Test
+    void createTask_withPastDueDate_shouldReturnValidationError() throws Exception {
+        TaskRequest invalidRequest = new TaskRequest(
+                "Test Task",
+                "Beschreibung",
+                "OPEN",
+                LocalDateTime.now().minusDays(1),
+                "Max"
+        );
+
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.dueDate").exists());
+    }
+
+    /**
+     * Testet die erweiterte Validierung: leerer Titel (@NotBlank).
+     */
+    @Test
+    void createTask_withBlankTitle_shouldReturnValidationError() throws Exception {
+        TaskRequest invalidRequest = new TaskRequest(
+                "",
+                "Beschreibung",
+                "OPEN",
+                LocalDateTime.now().plusDays(5),
+                "Max"
+        );
+
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.title").exists());
+    }
+
+    // Weitere Tests für updateTask und deleteTask können bei Bedarf analog ergänzt werden.
 }

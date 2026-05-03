@@ -1,44 +1,51 @@
 package de.sp.taskmanager.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.sp.taskmanager.config.TestSecurityConfig;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import de.sp.taskmanager.dto.TaskRequest;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import de.sp.taskmanager.repository.TaskRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.time.LocalDateTime;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-
 
 /**
- * Diese Klasse enthält Integrationstests für das gesamte System.
- * SpringBootTest lädt den vollen Spring-Kontext inklusive Datenbank und Security.
+ * TaskIntegrationTest führt Integrationstests für das gesamte System durch.
  *
- * Good Practice: Integrationstests überprüfen das Zusammenspiel aller Schichten (Controller → Service → Repository → Datenbank).
- * @WithMockUser simuliert einen angemeldeten Benutzer.
+ * Die Klasse testet das Zusammenspiel von Controller, Service, Repository und Datenbank
+ * unter Verwendung des vollen Spring-Boot-Kontexts. Sie prüft das Abrufen und Erstellen
+ * von Tasks über echte HTTP-Aufrufe.
  *
- * Wichtig zu wissen: @SpringBootTest startet die komplette Anwendung. @AutoConfigureMockMvc ermöglicht
- * HTTP-Tests mit realem Backend. @ActiveProfiles("test") verwendet die Test-Konfiguration und Test-Datenbank.
+ * Good Practice: @SpringBootTest lädt den kompletten Anwendungskontext, @ActiveProfiles
+ * aktiviert das Test-Profil und MockMvc simuliert HTTP-Requests. Der ObjectMapper
+ * wird für die JSON-Verarbeitung der TaskRequest-Daten verwendet.
+ *
+ * Wichtig zu wissen:
+ * Diese Testklasse stellt sicher, dass alle Komponenten der Geschäftslogik aus Termin 4
+ * (API-Design, Validierung von Benutzereingaben, Fehlermeldungen und Fehlerbehandlung)
+ * im vollständigen System korrekt zusammenarbeiten. Die Tests verwenden den kanonischen
+ * Record-Konstruktor von TaskRequest und liefern strukturierte JSON-Antworten.
  */
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.main.allow-bean-definition-overriding=true",
+        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL",
+        "spring.datasource.username=sa",
+        "spring.datasource.password=",
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.jpa.show-sql=true"
+})
 @ActiveProfiles("test")
-@Import(TestSecurityConfig.class)
-@WithMockUser(username = "testuser", roles = "USER")
 class TaskIntegrationTest {
 
     @Autowired
@@ -46,20 +53,26 @@ class TaskIntegrationTest {
 
     private MockMvc mockMvc;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    // ObjectMapper mit Unterstützung für LocalDateTime
+    private final ObjectMapper objectMapper = createObjectMapper();
 
     /**
-     * Wird vor jedem Test ausgeführt und richtet MockMvc mit Security ein.
-     *
-     * Good Practice: setup-Methode stellt sicher, dass jeder Test mit derselben Konfiguration startet.
-     *
-     * Wichtig zu wissen: MockMvcBuilders.webAppContextSetup baut einen MockMvc-Client, der Security berücksichtigt.
+     * Erstellt und konfiguriert den ObjectMapper für die JSON-Verarbeitung.
+     */
+    private ObjectMapper createObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return mapper;
+    }
+
+    /**
+     * Richtet MockMvc vor jedem Test ein.
      */
     @BeforeEach
     void setup() {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(context)
-                .apply(springSecurity())  // Explizit Security integrieren
                 .build();
     }
 
@@ -74,12 +87,17 @@ class TaskIntegrationTest {
     }
 
     /**
-     * Testet das Erstellen eines Tasks im vollen System.
+     * Testet das Erstellen eines Tasks im vollen System mit gültigen Daten.
      */
     @Test
     void createTask_integration_shouldReturnCreatedTask() throws Exception {
-        TaskRequest request = new TaskRequest();
-        request.setTitle("Neuer Test-Task");
+        TaskRequest request = new TaskRequest(
+                "Neuer Test-Task",
+                "Dies ist eine ausführliche Beschreibung für den Integrationstest.",
+                "OPEN",
+                LocalDateTime.now().plusDays(7),
+                "Testuser"
+        );
 
         mockMvc.perform(post("/api/tasks")
                         .contentType(MediaType.APPLICATION_JSON)

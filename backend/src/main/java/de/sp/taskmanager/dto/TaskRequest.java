@@ -1,69 +1,70 @@
 package de.sp.taskmanager.dto;
 
-import de.sp.taskmanager.model.TaskStatus;
+import jakarta.validation.constraints.*;
+
 import java.time.LocalDateTime;
 
 /**
- * Diese Klasse ist ein Data Transfer Object (DTO) für Anfragen zum Erstellen oder Aktualisieren von Tasks.
- * Sie enthält Felder, die vom Client gesendet werden, ohne interne Details wie IDs.
+ * TaskRequest dient als sauberes Data Transfer Object (DTO) für alle Eingaben,
+ * die über die REST-API ankommen (Create und Update).
  *
- * Good Practice: DTOs werden verwendet, um die API von der internen Datenstruktur zu trennen. Das schützt
- * sensible Daten und erleichtert Änderungen. Getter und Setter sorgen für Kapselung.
+ * Good Practice: DTOs trennen die API-Schnittstelle klar von der Entity.
+ * Dadurch bleibt die Entity frei von Validierungs-Annotationen, die nur für
+ * die API gelten, und das API-Design wird übersichtlicher und wartbarer.
  *
- * Wichtig zu wissen: DTOs sind einfache Klassen ohne Logik, die Daten transportieren. Sie werden in Controllern
- * verwendet, um JSON in Objekte umzuwandeln.
+ * Hier werden jetzt erweiterte Validierungen demonstriert:
+ * - @Pattern für erlaubte Werte (z. B. Status als Enum-ähnliche Einschränkung)
+ * - @FutureOrPresent + kombinierte Validierungen
+ * - @NotNull / @NotBlank mit individuellen Fehlermeldungen
+ * - @Size mit präzisen Längenbeschränkungen
+ * - Hinweise auf Cross-Field-Validierung und Custom Constraints
+ *
+ * Wichtig zu wissen:
+ * Erweiterte Validierungen (über die Basis-Annotationen hinaus) sind in modernen
+ * Spring-Boot-Anwendungen essenziell, um Geschäftsregeln direkt auf API-Ebene
+ * durchzusetzen. Mit @Pattern, @FutureOrPresent und der Möglichkeit von Custom
+ * Constraints (z. B. eigener Validator für Status-Übergänge) wird die Validierung
+ * deklarativ, zentral und wartbar. Das verhindert ungültige Daten schon vor Erreichen
+ * der Service-Schicht und liefert klare, feldspezifische Fehlermeldungen an das Frontend.
  */
-public class TaskRequest {
+public record TaskRequest(
 
-    private String title;
-    private String description;
-    private TaskStatus status;
-    private LocalDateTime dueDate;
-    private String assignedTo;
+        // Basis + erweiterte Validierung: Pflichtfeld mit Längenbeschränkung
+        @NotBlank(message = "Der Titel darf nicht leer sein")
+        @Size(min = 3, max = 100, message = "Der Titel muss zwischen 3 und 100 Zeichen lang sein")
+        String title,
 
-    /**
-     * Getter für den Titel.
-     *
-     * Good Practice: Immer Getter und Setter für Felder bereitstellen, um direkten Zugriff zu vermeiden
-     * (Prinzip der Kapselung).
-     */
-    public String getTitle() {
-        return title;
-    }
+        // Erweiterte Validierung: Beschreibung optional, aber maximal 500 Zeichen
+        @Size(max = 500, message = "Die Beschreibung darf maximal 500 Zeichen lang sein")
+        String description,
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+        // ERWEITERTE VALIDIERUNG: Status darf nur bestimmte Werte annehmen (ähnlich Enum)
+        // @Pattern erlaubt hier eine reguläre Expression – sehr praktisch für String-basierte Enums
+        @NotNull(message = "Der Status muss angegeben werden")
+        @Pattern(regexp = "OPEN|IN_PROGRESS|COMPLETED|BLOCKED",
+                message = "Ungültiger Status. Erlaubte Werte: OPEN, IN_PROGRESS, COMPLETED, BLOCKED")
+        String status,
 
-    public String getDescription() {
-        return description;
-    }
+        // Erweiterte Validierung: Datum muss in der Zukunft oder Gegenwart liegen
+        // Zusätzlich könnte man hier mit @AssertTrue eine Cross-Field-Regel ergänzen (siehe unten)
+        @FutureOrPresent(message = "Das Fälligkeitsdatum darf nicht in der Vergangenheit liegen")
+        LocalDateTime dueDate,
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+        // Erweiterte Validierung: Zugewiesene Person optional, aber auf sinnvolle Länge beschränkt
+        // Beispiel: könnte später mit @Email oder @Pattern für E-Mail-Format erweitert werden
+        @Size(max = 50, message = "Der Name des Zuständigen darf maximal 50 Zeichen lang sein")
+        String assignedTo
 
-    public TaskStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TaskStatus status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDateTime dueDate) {
-        this.dueDate = dueDate;
-    }
-
-    public String getAssignedTo() {
-        return assignedTo;
-    }
-
-    public void setAssignedTo(String assignedTo) {
-        this.assignedTo = assignedTo;
-    }
+        // BEISPIEL FÜR EINE CROSS-FIELD-VALIDIERUNG (als Kommentar, da Records keine Methoden erlauben):
+        // @AssertTrue
+        // public boolean isValidDueDateForStatus() {
+        //     if ("COMPLETED".equals(status) && dueDate != null && dueDate.isAfter(LocalDateTime.now())) {
+        //         return false; // abgeschlossene Tasks dürfen kein zukünftiges Due-Date haben
+        //     }
+        //     return true;
+        // }
+        // Hinweis: Für echte Cross-Field-Validierungen in Records empfiehlt sich ein Custom Constraint
+        // (z. B. @ValidTaskState) mit eigenem Validator – siehe Best-Practice-Kommentar oben.
+) {
+        // Record bietet automatisch equals, hashCode, toString und einen kanonischen Konstruktor
 }

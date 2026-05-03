@@ -3,7 +3,7 @@ package de.sp.taskmanager.controller;
 import de.sp.taskmanager.dto.TaskRequest;
 import de.sp.taskmanager.dto.TaskResponse;
 import de.sp.taskmanager.service.TaskService;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -18,9 +18,10 @@ import java.util.List;
  * wie TaskRequest und TaskResponse werden verwendet, um nur notwendige Daten über das Netzwerk zu senden
  * und die internen Modelle zu schützen.
  *
- * Wichtig zu wissen: REST steht für Representational State Transfer – es ist ein Stil, APIs zu bauen.
- * @RestController sagt Spring, dass diese Klasse HTTP-Requests verarbeitet und JSON zurückgibt.
- * Controller-Klassen gehören in ein 'controller'-Package für Übersichtlichkeit.
+ * Wichtig zu wissen: Ein sauberes API-Design mit dedizierten Request-DTOs und deklarativer Validierung (@Valid) ist der
+ * Standard in professionellen Spring-Boot-Anwendungen. Der Controller wird dadurch extrem wartbar und die Geschäftslogik
+ * bleibt vollständig im Service. ResponseEntity gibt volle Kontrolle über die HTTP-Antwort und erleichtert späteres
+ * Hinzufügen von HATEOAS oder spezifischen Fehlermeldungen.
  */
 @RestController
 @RequestMapping("/api/tasks")
@@ -75,8 +76,9 @@ public class TaskController {
      * Status 201 CREATED wird zurückgegeben.
      */
     @PostMapping
-    public ResponseEntity<TaskResponse> createTask(@RequestBody TaskRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(taskService.createTask(request));
+    public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskRequest request) {
+        TaskResponse created = taskService.createTask(request);
+        return ResponseEntity.status(201).body(created);
     }
 
     /**
@@ -84,8 +86,9 @@ public class TaskController {
      * HTTP-Methode: PUT /api/tasks/{id}
      */
     @PutMapping("/{id}")
-    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long id, @RequestBody TaskRequest request) {
-        return ResponseEntity.ok(taskService.updateTask(id, request));
+    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long id, @Valid @RequestBody TaskRequest request) {
+        TaskResponse updated = taskService.updateTask(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     /**
