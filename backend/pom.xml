@@ -72,6 +72,33 @@
 
     <build>
         <plugins>
+            <!--
+                Best Practice für Spring Boot Projekte:
+                Der maven-compiler-plugin wird mit dem Argument "-parameters" konfiguriert.
+                Dies stellt sicher, dass die Namen der Methodenparameter im Bytecode erhalten bleiben (Parameter Name Retention).
+                Ohne diese Einstellung kann Spring die Parameter von annotierten Methoden (z.B. @PathVariable, @RequestParam, @RequestBody)
+                nicht zuverlässig per Reflection auflösen, wenn der Name nicht explizit in der Annotation angegeben wird
+                (z.B. @PathVariable Long id vs. @PathVariable("id") Long id).
+                Dies ist besonders relevant bei Endpoints wie GET /api/tasks/{id} und verhindert, dass einzelne Ressourcen
+                nicht gefunden werden können.
+                Die Konfiguration gilt für das gesamte Modul und ist kompatibel mit Java 21.
+
+                Wichtig zu wissen:
+                Ohne das -parameters Argument schlägt die automatische Parameter-Bindung für Pfad-Variablen in REST-Endpoints fehl,
+                wenn der Parameter-Name nicht explizit in der Annotation angegeben ist. Dies führt dazu, dass z.B. GET /api/tasks/1
+                nicht funktioniert und stattdessen ein 404 oder unerwartetes Verhalten auftritt, obwohl der Endpoint korrekt
+                implementiert ist. Die Ergänzung stellt sicher, dass die API wie erwartet einzelne Tasks zurückgibt.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.12.1</version>
+                <configuration>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
