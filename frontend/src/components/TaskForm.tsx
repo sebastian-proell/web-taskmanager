@@ -1,134 +1,56 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ValidationErrorDisplay from './ValidationErrorDisplay';
 import TaskFormField from './TaskFormField';
+import { useTaskForm } from '../hooks/useTaskForm';
+
+interface Task {
+    id: number;
+    title: string;
+    description: string;
+    status: string;
+    dueDate: string;
+    assignedTo: string;
+}
+
+interface TaskFormProps {
+    task?: Task | null;
+    onSaved: () => void;
+}
 
 /**
- * TaskForm.tsx ist die zentrale Komponente zur Erstellung und Bearbeitung von Tasks.
+ * TaskForm ist die reine Präsentationskomponente für das Task-Formular.
  *
- * Sie verarbeitet das Formular, sendet Daten an die REST-API und delegiert die
- * komplette Fehler- und Erfolgsdarstellung an wiederverwendbare Sub-Komponenten.
+ * Sie nutzt den useTaskForm Hook für die gesamte State-Logik und Datenbindung.
+ * Die Komponente selbst konzentriert sich nur noch auf das Rendering der UI-Elemente.
  *
  * Good Practice:
- * - Controlled Components mit minimalem Boilerplate
- * - Auslagerung der Fehlerdarstellung und Feld-Rendering in separate Komponenten
- * - Klare Trennung von Form-Logik, API-Aufruf und Präsentation
- * - Automatisches Zurücksetzen von Fehlern bei erneuter Eingabe
+ * - Komponente bleibt schlank und fokussiert sich auf das Rendering (Separation of Concerns)
+ * - Business-Logik und State-Management sind im wiederverwendbaren Hook gekapselt
+ * - Einfache Props-Schnittstelle (task + onSaved)
+ * - Klare Verantwortlichkeiten zwischen View und Logik
  *
  * Wichtig zu wissen:
- * Die Komponente verarbeitet Validierungsfehler aus dem Backend als Objekt
- * („errors“) und leitet sie an ValidationErrorDisplay weiter. Durch die Nutzung
- * von TaskFormField wird der Code übersichtlich gehalten und unterstützt eine
- * konsistente, feldgenaue Fehleranzeige bei POST-Requests.
+ * Durch die Auslagerung der gesamten Formularlogik in den useTaskForm Hook
+ * wird die Datenbindung zwischen View und Model sauber getrennt.
+ * Die Komponente erhält alle benötigten Werte und Handler über den Hook
+ * und bleibt dadurch einfach und gut testbar.
  */
-const TaskForm: React.FC = () => {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [status, setStatus] = useState('OPEN');
-    const [dueDate, setDueDate] = useState('');
-    const [assignedTo, setAssignedTo] = useState('');
-
-    const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
-    const [generalError, setGeneralError] = useState<string | null>(null);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [rawErrorDebug, setRawErrorDebug] = useState<any>(null);
-
-    const username = 'user';
-    const password = 'password';
-    const authHeader = 'Basic ' + btoa(`${username}:${password}`);
-
-    const resetFieldError = (field: string) => {
-        if (fieldErrors[field]) {
-            setFieldErrors(prev => {
-                const updated = { ...prev };
-                delete updated[field];
-                return updated;
-            });
-        }
-    };
-
-    const handleValidationErrors = (errorData: any) => {
-        console.log('🔍 RAW Backend Error Response:', errorData);
-        setRawErrorDebug(errorData);
-
-        const errors: { [key: string]: string } = {};
-
-        if (errorData.errors && typeof errorData.errors === 'object' && !Array.isArray(errorData.errors)) {
-            Object.entries(errorData.errors).forEach(([field, message]) => {
-                if (field && typeof message === 'string') {
-                    errors[field] = message;
-                }
-            });
-        } else if (errorData.errors && Array.isArray(errorData.errors)) {
-            errorData.errors.forEach((err: any) => {
-                const fieldName = err.field || err.objectName || 'unknown';
-                const message = err.defaultMessage || err.message || 'Ungültiger Wert';
-                if (fieldName !== 'unknown') {
-                    errors[fieldName] = message;
-                }
-            });
-        }
-
-        setFieldErrors(errors);
-
-        if (Object.keys(errors).length === 0) {
-            const fallbackMsg = errorData.message || errorData.error || 'Validierungsfehler – bitte prüfen Sie die Eingaben.';
-            setGeneralError(fallbackMsg);
-        } else {
-            setGeneralError(null);
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        setGeneralError(null);
-        setSuccessMessage(null);
-        setRawErrorDebug(null);
-
-        const taskData = {
-            title,
-            description,
-            status,
-            dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
-            assignedTo
-        };
-
-        try {
-            const response = await fetch('http://localhost:8080/api/tasks', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': authHeader
-                },
-                body: JSON.stringify(taskData)
-            });
-
-            if (response.ok) {
-                const createdTask = await response.json();
-                setSuccessMessage(`Task "${createdTask.title}" erfolgreich erstellt!`);
-                setTitle(''); setDescription(''); setStatus('OPEN'); setDueDate(''); setAssignedTo('');
-                setFieldErrors({});
-            } else if (response.status === 400) {
-                const errorData = await response.json();
-                console.log('📡 HTTP 400 Response Body:', errorData);
-                handleValidationErrors(errorData);
-            } else {
-                const errorText = await response.text();
-                console.error('❌ Unerwarteter HTTP-Status:', response.status, errorText);
-                setGeneralError('Unerwarteter Server-Fehler. Bitte später erneut versuchen.');
-            }
-        } catch (error) {
-            console.error('🚨 Netzwerk- oder JSON-Fehler:', error);
-            setGeneralError('Verbindung zum Server fehlgeschlagen. Ist das Backend gestartet?');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+const TaskForm: React.FC<TaskFormProps> = ({ task, onSaved }) => {
+    const {
+        formData,
+        fieldErrors,
+        generalError,
+        successMessage,
+        isSubmitting,
+        isEditing,
+        rawErrorDebug,
+        handleInputChange,
+        handleSubmit
+    } = useTaskForm(task, onSaved);
 
     return (
         <div className="task-form-container">
-            <h2>Neuen Task erstellen</h2>
+            <h2>{isEditing ? 'Task bearbeiten' : 'Neuen Task erstellen'}</h2>
 
             <ValidationErrorDisplay
                 fieldErrors={fieldErrors}
@@ -142,8 +64,8 @@ const TaskForm: React.FC = () => {
                     id="title"
                     label="Titel"
                     type="text"
-                    value={title}
-                    onChange={(e) => { setTitle(e.target.value); resetFieldError('title'); }}
+                    value={formData.title}
+                    onChange={handleInputChange}
                     error={fieldErrors.title}
                     required
                     disabled={isSubmitting}
@@ -153,8 +75,8 @@ const TaskForm: React.FC = () => {
                     id="description"
                     label="Beschreibung"
                     type="textarea"
-                    value={description}
-                    onChange={(e) => { setDescription(e.target.value); resetFieldError('description'); }}
+                    value={formData.description}
+                    onChange={handleInputChange}
                     error={fieldErrors.description}
                     disabled={isSubmitting}
                 />
@@ -163,8 +85,8 @@ const TaskForm: React.FC = () => {
                     id="status"
                     label="Status"
                     type="select"
-                    value={status}
-                    onChange={(e) => { setStatus(e.target.value); resetFieldError('status'); }}
+                    value={formData.status}
+                    onChange={handleInputChange}
                     error={fieldErrors.status}
                     options={[
                         { value: 'OPEN', label: 'Offen' },
@@ -180,8 +102,8 @@ const TaskForm: React.FC = () => {
                     id="dueDate"
                     label="Fälligkeitsdatum"
                     type="datetime-local"
-                    value={dueDate}
-                    onChange={(e) => { setDueDate(e.target.value); resetFieldError('dueDate'); }}
+                    value={formData.dueDate}
+                    onChange={handleInputChange}
                     error={fieldErrors.dueDate}
                     disabled={isSubmitting}
                 />
@@ -190,14 +112,16 @@ const TaskForm: React.FC = () => {
                     id="assignedTo"
                     label="Zugewiesen an"
                     type="text"
-                    value={assignedTo}
-                    onChange={(e) => { setAssignedTo(e.target.value); resetFieldError('assignedTo'); }}
+                    value={formData.assignedTo}
+                    onChange={handleInputChange}
                     error={fieldErrors.assignedTo}
                     disabled={isSubmitting}
                 />
 
                 <button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Wird gespeichert...' : 'Task erstellen'}
+                    {isSubmitting
+                        ? (isEditing ? 'Wird aktualisiert...' : 'Wird gespeichert...')
+                        : (isEditing ? 'Task aktualisieren' : 'Task erstellen')}
                 </button>
             </form>
         </div>

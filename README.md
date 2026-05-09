@@ -1,36 +1,51 @@
-# TaskManager – Vorlesungsprojekt (Termin 4)
+# TaskManager – Vorlesungsprojekt (Termin 5)
 
-**API-Design, Validierung von Benutzereingaben, Fehlermeldungen und Fehlerbehandlung mit Spring Boot**
+**Datenbindung und Zustandsverwaltung – Verknüpfung von View und Model**
 
-### Inhalt
-- React 18 + Vite + TypeScript
-- Komponentenbasierte UI mit React Router
-- Wiederverwendbare Komponenten (`TaskList`, `TaskForm`, `Layout`, `Dashboard`)
-- Vollständige CRUD-Funktionalität (Erstellen, Lesen, Aktualisieren, Löschen)
-- Basic Auth für die REST-API-Kommunikation
-- CORS-Konfiguration für die Entwicklung
-- Environment-Variablen für sensible Daten
-- Unterstützung für beide Build-Tools (Maven und Gradle)
-- **Neu in Termin 4:**
-    - Deklarative Validierung mit Jakarta Bean Validation (@NotBlank, @Size, @FutureOrPresent, @Pattern)
-    - Strukturierte JSON-Fehlermeldungen über `@RestControllerAdvice`
-    - Erweiterte DTOs als Java Records (TaskRequest)
-    
-### Good Practice
-- Trennung von Backend und Frontend in eigenen Modulen
-- Wiederverwendbarkeit von Komponenten im React-Frontend
-- Zentrale Security- und CORS-Konfiguration
-- Environment-Variablen für sensible Daten (Basic Auth)
-- Klare Schichtentrennung
-- Deklarative Validierung direkt im DTO (keine manuelle Prüfung im Controller)
-- Globale, einheitliche Fehlerbehandlung für alle Endpunkte
+### Architektur-Übersicht (Termin 5)
+
+Das Projekt wurde in Termin 5 um eine saubere Schichtentrennung erweitert:
+
+- **taskService.ts** — Zentrale API-Kommunikationsschicht
+- **useTaskForm Hook** — Formular-Logik + Datenbindung mit `useReducer`
+- **useTasks Hook** — Listenverwaltung + CRUD mit `useReducer`
+- **TaskForm.tsx** & **TaskList.tsx** — Reine Präsentationskomponenten
+
+Dadurch wird die **Datenbindung** (controlled components + einheitliches formData-Modell) und die **Zustandsverwaltung** (explizite Zustandsmaschinen via useReducer) klar und wartbar umgesetzt.
+
+### Good Practice (Termin 5)
+
+- Trennung von UI und Business-Logik durch Custom Hooks
+- Zentrale API-Schicht (`taskService`)
+- Verwendung von `useReducer` für konsistente Zustandsübergänge (Formular + Liste)
+- Komponenten bleiben schlank und fokussieren sich auf Rendering
+- Single Source of Truth für Formular- und Listen-State
+- Explizite Props + Callbacks für die Verknüpfung zwischen Komponenten
 
 ### Wichtig zu wissen
-- Das Projekt läuft mit **Spring Boot 4.0.5**, **Java 21**, **React 18** und **Vite**.
-- Das Backend startet auf Port **8080**, das Frontend-Dev-Server auf Port **5173**.
-- Die REST-API ist mit Basic Auth geschützt (`user`/`password`).
-- Es gibt sowohl Maven (`pom.xml`) als auch Gradle (`build.gradle.kts`) Unterstützung.
-- Termin 4-Funktionen (Validierung, strukturierte Fehler, Formatierung) sind vollständig implementiert und durch Tests abgesichert.
+
+- Das Projekt verwendet **React 18 + Vite + TypeScript** und **Spring Boot 4**
+- Alle sensiblen Daten (Credentials) kommen aus Environment-Variablen
+- Der `useTaskForm` Hook implementiert eine eigene kleine Zustandsmaschine für den Submit-Prozess
+- Der `useTasks` Hook verwaltet Lade-, Fehler- und Bearbeitungszustände zentral
+- Backend und Frontend sind weiterhin komplett getrennt
+
+### Projektstruktur (wichtige Dateien Termin 5)
+
+```
+frontend/src/
+├── services/
+│   └── taskService.ts          # Zentrale API-Schicht
+├── hooks/
+│   ├── useTaskForm.ts          # Formular-State + Datenbindung (mit useReducer)
+│   └── useTasks.ts             # Listen-State + CRUD (mit useReducer)
+├── components/
+│   ├── TaskForm.tsx            # Reine UI-Komponente (nutzt useTaskForm)
+│   ├── TaskList.tsx            # Reine UI-Komponente (nutzt useTasks)
+│   ├── TaskFormField.tsx
+│   └── ValidationErrorDisplay.tsx
+└── App.tsx
+```
 
 ### Voraussetzungen
 - Java 21 (oder höher)
