@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html">
+
+<!--
+    index.xhtml – Einfache Dashboard-Einstiegsseite der JSF-Demo.
+
+    Diese Seite dient als funktionaler und übersichtlicher Einstiegspunkt für die Demonstration
+    serverseitiger Web-Entwicklung mit Jakarta Faces. Sie begrüßt den Benutzer mit einem
+    einfachen Text und führt direkt zur Task-Verwaltung (Liste und Formular).
+
+    Good Practice:
+    - Klare, einfache Struktur mit Header, zentralem Begrüßungsbereich und prominenter Call-to-Action
+    - Verwendung von cleanem CSS für ein ansprechendes, aber nicht überladenes Design (Fokus auf Lesbarkeit und Usability)
+    - Trennung von Einstiegs-/Dashboard-Seite und der eigentlichen Anwendungslogik (tasks.xhtml)
+    - Outcome-basierte Navigation mit h:link für saubere JSF-Navigation ohne harte URLs
+    - Responsive und barrierearme Gestaltung durch semantisches HTML und klare Hierarchie
+
+    Wichtig zu wissen:
+    In reinen JSF-Anwendungen eignet sich eine dedizierte index.xhtml hervorragend als einfaches
+    Dashboard, um den Benutzer willkommen zu heißen und mit minimalem Inhalt zur Kernfunktionalität
+    (hier: Task-Liste und Formular) zu leiten. Dadurch bleibt die Anwendung funktional und übersichtlich,
+    ohne unnötigen Content. Die Begrüßung ist bewusst kurz gehalten, um den Fokus auf die
+    interaktiven Elemente zu lenken. Die Navigation über h:link mit Outcome="tasks" ermöglicht
+    eine saubere Trennung und einfache Erweiterbarkeit der Seitenstruktur.
+-->
+
+<h:head>
+    <title>TaskManager • JSF Demo</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 30px;
+        }
+        .dashboard {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 40px 50px;
+            margin: 60px auto;
+            text-align: center;
+        }
+        .dashboard h1 {
+            font-size: 2.4rem;
+            margin: 0 0 20px 0;
+            color: var(--primary);
+        }
+        .dashboard p {
+            font-size: 1.15rem;
+            max-width: 620px;
+            margin: 0 auto 35px auto;
+            color: #5d6d7e;
+        }
+        .btn-primary {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 14px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.35);
+        }
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.45);
+        }
+        .footer {
+            background: var(--primary);
+            color: #bdc3c7;
+            text-align: center;
+            padding: 25px 0;
+            font-size: 0.9rem;
+            margin-top: 80px;
+        }
+    </style>
+</h:head>
+
+<h:body>
+
+    <!-- Einfacher Header -->
+    <div class="header">
+        <div class="container">
+            <div class="logo">TaskManager</div>
+        </div>
+    </div>
+
+    <!-- Einfaches Dashboard mit Begrüßungstext -->
+    <div class="container">
+        <div class="dashboard">
+            <h1>Willkommen im TaskManager!</h1>
+            <p>
+                Dies ist eine einfache, funktionale JSF-Anwendung zur Verwaltung von Aufgaben.<br/>
+                Mit serverseitiger Datenbindung und Zustandsverwaltung können Sie Aufgaben erstellen,
+                bearbeiten und löschen.
+            </p>
+
+            <h:link value="Zur Taskliste und zum Formular →" outcome="tasks" styleClass="btn-primary"/>
+        </div>
+    </div>
+
+    <!-- Minimaler Footer -->
+    <div class="footer">
+        <div class="container">
+            Pure JSF Demo • Jakarta Faces + PrimeFaces • Neutrales Lehrbeispiel
+        </div>
+    </div>
+
+</h:body>
+</html>

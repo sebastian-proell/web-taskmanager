@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                             https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+    <!--
+        web.xml – Konfigurationsdatei für die Web-Anwendung.
+
+        Good Practice:
+        - Explizite Version und Namespace für Jakarta EE 10+ Kompatibilität
+        - Welcome-File-Liste für benutzerfreundliche Einstiegsseite
+        - Keine unnötigen Servlet-Mappings, da JSF und PrimeFaces auto-konfiguriert sind
+
+        Wichtig zu wissen:
+        Die Welcome-File-Liste stellt sicher, dass beim Aufruf des Context-Roots (z. B. /taskmanager-jsf/)
+        automatisch die index.xhtml geladen wird. Ohne diese Konfiguration kann es zu 404-Fehlern kommen,
+        wenn kein Standard-Welcome-File existiert. JSF-Seiten werden über das FacesServlet automatisch
+        verarbeitet, sobald die Extension .xhtml verwendet wird.
+    -->
+
+    <display-name>TaskManager JSF Demo</display-name>
+
+    <welcome-file-list>
+        <welcome-file>index.xhtml</welcome-file>
+    </welcome-file-list>
+
+</web-app>

@@ -1,51 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.sp.taskmanager</groupId>
-    <artifactId>taskmanager</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <artifactId>jsf-taskmanager</artifactId>
+    <version>1.0.0</version>
+    <packaging>war</packaging>
 
-    <name>TaskManager – Vorlesungsprojekt (Multi-Module)</name>
-    <description>Multi-Module Maven-Projekt für das Modul „Programmierung von Web-Anwendungen – webbasierte betriebliche Informationssysteme“</description>
+    <name>JSF TaskManager</name>
+    <description>JSF-Implementierung zur Demonstration serverseitiger Datenbindung und Zustandsverwaltung</description>
 
     <properties>
-        <java.version>21</java.version>
-        <spring-boot.version>4.0.5</spring-boot.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+
+        <!-- Versionen -->
+        <jakarta.faces.version>4.0.5</jakarta.faces.version>
+        <primefaces.version>14.0.0</primefaces.version>
+        <payara.micro.version>6.2024.12</payara.micro.version>
     </properties>
 
-    <!--
-        Good Practice: Im Root-POM wird die Spring-Boot-BOM zentral eingebunden.
-        Dadurch müssen in den Submodulen keine Versionsnummern mehr angegeben werden.
-    -->
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <dependencies>
+        <!-- Jakarta Faces (Mojarra) -->
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.faces</artifactId>
+            <version>${jakarta.faces.version}</version>
+        </dependency>
 
-    <modules>
-        <module>backend</module>
-        <module>frontend</module>
-    </modules>
+        <!-- PrimeFaces -->
+        <dependency>
+            <groupId>org.primefaces</groupId>
+            <artifactId>primefaces</artifactId>
+            <version>${primefaces.version}</version>
+            <classifier>jakarta</classifier>
+        </dependency>
 
-    <repositories>
-        <repository>
-            <id>maven-central</id>
-            <url>https://repo.maven.apache.org/maven2</url>
-        </repository>
-    </repositories>
+        <!-- Bean Validation -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>3.0.2</version>
+        </dependency>
 
+        <!-- CDI API (provided) -->
+        <dependency>
+            <groupId>jakarta.enterprise</groupId>
+            <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            <version>4.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>taskmanager-jsf</finalName>
+
+        <plugins>
+            <!-- Maven WAR Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+
+            <!-- Payara Micro Maven Plugin -->
+            <plugin>
+                <groupId>fish.payara.maven.plugins</groupId>
+                <artifactId>payara-micro-maven-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <payaraVersion>${payara.micro.version}</payaraVersion>
+                    <deployWar>true</deployWar>
+                    <contextRoot>/taskmanager-jsf</contextRoot>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

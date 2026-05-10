@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+<!--
+    tasks.xhtml – Hauptseite der JSF-Demo-Anwendung.
+
+    Diese Seite demonstriert eine vollständige, serverseitig gerenderte Task-Verwaltung
+    mit integrierter Dashboard-Übersicht. Sie kombiniert Formular, Liste und Statistiken
+    auf einer Seite, ähnlich typischen Business-Applikationen.
+
+    Good Practice:
+    - Trennung von Formular und Tabelle in eigene h:form-Elemente für gezieltes Partial-Update
+    - Verwendung von PrimeFaces-Komponenten (p:panel, p:dataTable, p:commandButton) für konsistente UX
+    - Dashboard-Statistiken als eigenständiger Bereich mit eigener ID für effizientes Re-Rendering
+    - Inline-CSS für schnelle Prototypen; in Produktion besser externe Stylesheets oder PrimeFaces-Themes
+    - Klare IDs für alle updatbaren Komponenten (form, taskTable, dashboard)
+
+    Wichtig zu wissen:
+    Die serverseitige Datenbindung ermöglicht es, dass Änderungen am Model (z. B. durch
+    taskBean.save()) sofort in der View sichtbar werden, ohne manuelle DOM-Manipulation.
+    Durch das update-Attribut von p:commandButton wird nur der notwendige Teilbaum
+    neu gerendert (AJAX). Die Dashboard-Statistiken werden automatisch aktualisiert,
+    da sie auf derselben Bean-Instanz basieren und nach jedem CRUD-Vorgang die Liste neu geladen wird.
+-->
+
+<h:head>
+    <title>TaskManager - JSF (Pure)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 2.2rem;
+        }
+        .header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1.05rem;
+        }
+
+        /* Dashboard Stats */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px 28px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 5px solid #3498db;
+            transition: transform 0.2s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        .stat-card.open { border-left-color: #e74c3c; }
+        .stat-card.progress { border-left-color: #f39c12; }
+        .stat-card.completed { border-left-color: #27ae60; }
+
+        .stat-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-card .value {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1;
+        }
+
+        /* Form and Table styling */
+        .content-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+    </style>
+</h:head>
+
+<h:body>
+
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <h1>TaskManager</h1>
+            <p>Server-seitige Web-Anwendung mit JSF &amp; PrimeFaces • Demo für Datenbindung &amp; Zustandsverwaltung</p>
+        </div>
+
+        <!-- Dashboard Stats -->
+        <h:panelGroup id="dashboard" layout="block">
+            <div class="dashboard">
+                <div class="stat-card">
+                    <h3>Gesamt</h3>
+                    <div class="value">#{taskBean.totalTasks}</div>
+                </div>
+                <div class="stat-card open">
+                    <h3>Offen</h3>
+                    <div class="value">#{taskBean.openTasks}</div>
+                </div>
+                <div class="stat-card progress">
+                    <h3>In Bearbeitung</h3>
+                    <div class="value">#{taskBean.inProgressTasks}</div>
+                </div>
+                <div class="stat-card completed">
+                    <h3>Abgeschlossen</h3>
+                    <div class="value">#{taskBean.completedTasks}</div>
+                </div>
+            </div>
+        </h:panelGroup>
+
+        <!-- Formular -->
+        <div class="content-section">
+            <h:form id="form">
+
+                <p:panel header="#{taskBean.editMode ? 'Task bearbeiten' : 'Neuen Task anlegen'}"
+                         style="margin-bottom: 0;">
+
+                    <h:panelGrid columns="2" cellpadding="10" style="width: 100%;">
+                        <h:outputLabel for="title" value="Titel" style="font-weight: 600;"/>
+                        <p:inputText id="title"
+                                     value="#{taskBean.selectedTask.title}"
+                                     required="true"
+                                     style="width: 100%;"/>
+
+                        <h:outputLabel for="description" value="Beschreibung" style="font-weight: 600;"/>
+                        <p:inputTextarea id="description"
+                                         value="#{taskBean.selectedTask.description}"
+                                         rows="3"
+                                         style="width: 100%;"/>
+
+                        <h:outputLabel for="status" value="Status" style="font-weight: 600;"/>
+                        <p:selectOneMenu id="status" value="#{taskBean.selectedTask.status}" style="width: 100%;">
+                            <f:selectItem itemLabel="Offen" itemValue="OPEN"/>
+                            <f:selectItem itemLabel="In Bearbeitung" itemValue="IN_PROGRESS"/>
+                            <f:selectItem itemLabel="Abgeschlossen" itemValue="COMPLETED"/>
+                        </p:selectOneMenu>
+
+                        <h:outputLabel for="assignedTo" value="Zugewiesen an" style="font-weight: 600;"/>
+                        <p:inputText id="assignedTo"
+                                     value="#{taskBean.selectedTask.assignedTo}"
+                                     style="width: 100%;"/>
+                    </h:panelGrid>
+
+                    <div style="margin-top: 20px;">
+                        <p:commandButton value="#{taskBean.editMode ? 'Aktualisieren' : 'Speichern'}"
+                                         action="#{taskBean.save}"
+                                         update="form taskTable dashboard"
+                                         icon="pi pi-save"
+                                         style="margin-right: 10px;"/>
+
+                        <p:commandButton value="Abbrechen"
+                                         action="#{taskBean.cancel}"
+                                         update="form"
+                                         rendered="#{taskBean.editMode}"
+                                         icon="pi pi-times"
+                                         styleClass="ui-button-secondary"/>
+                    </div>
+                </p:panel>
+
+            </h:form>
+        </div>
+
+        <!-- Tabelle -->
+        <div class="content-section">
+            <h2 style="margin-top: 0; color: #2c3e50;">Alle Aufgaben</h2>
+
+            <h:form id="tableForm">
+                <p:dataTable id="taskTable"
+                             value="#{taskBean.tasks}"
+                             var="task"
+                             rowKey="#{task.id}"
+                             paginator="true"
+                             rows="10"
+                             paginatorPosition="bottom"
+                             style="margin-top: 10px;"
+                             emptyMessage="Keine Aufgaben vorhanden.">
+
+                    <p:column headerText="ID" style="width: 60px; text-align: center;">
+                        <h:outputText value="#{task.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Titel" style="font-weight: 500;">
+                        <h:outputText value="#{task.title}"/>
+                    </p:column>
+
+                    <p:column headerText="Status" style="width: 140px;">
+                        <p:tag value="#{task.status}"
+                               severity="#{task.status == 'OPEN' ? 'danger' : (task.status == 'IN_PROGRESS' ? 'warning' : 'success')}" />
+                    </p:column>
+
+                    <p:column headerText="Zugewiesen an">
+                        <h:outputText value="#{task.assignedTo}"/>
+                    </p:column>
+
+                    <p:column headerText="Aktionen" style="width: 180px; text-align: center;">
+                        <p:commandButton value="Bearbeiten"
+                                         action="#{taskBean.edit(task)}"
+                                         update="form"
+                                         icon="pi pi-pencil"
+                                         style="margin-right: 6px;"
+                                         styleClass="ui-button-outlined"/>
+
+                        <p:commandButton value="Löschen"
+                                         action="#{taskBean.delete(task)}"
+                                         update="taskTable dashboard"
+                                         icon="pi pi-trash"
+                                         styleClass="ui-button-danger"/>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; color: #95a5a6; font-size: 0.9rem;">
+            JSF Pure Demo • Server-seitige Datenbindung &amp; ViewState
+        </div>
+
+    </div>
+
+</h:body>
+</html>
