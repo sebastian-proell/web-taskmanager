@@ -1,7 +1,7 @@
-import React from 'react';
 import ValidationErrorDisplay from './ValidationErrorDisplay';
 import TaskFormField from './TaskFormField';
 import { useTaskForm } from '../hooks/useTaskForm';
+import { Button, CircularProgress, Stack } from '@mui/material';
 
 interface Task {
     id: number;
@@ -18,22 +18,10 @@ interface TaskFormProps {
 }
 
 /**
- * TaskForm ist die reine Präsentationskomponente für das Task-Formular.
+ * TaskForm – Formular zum Erstellen und Bearbeiten von Tasks.
  *
- * Sie nutzt den useTaskForm Hook für die gesamte State-Logik und Datenbindung.
- * Die Komponente selbst konzentriert sich nur noch auf das Rendering der UI-Elemente.
- *
- * Good Practice:
- * - Komponente bleibt schlank und fokussiert sich auf das Rendering (Separation of Concerns)
- * - Business-Logik und State-Management sind im wiederverwendbaren Hook gekapselt
- * - Einfache Props-Schnittstelle (task + onSaved)
- * - Klare Verantwortlichkeiten zwischen View und Logik
- *
- * Wichtig zu wissen:
- * Durch die Auslagerung der gesamten Formularlogik in den useTaskForm Hook
- * wird die Datenbindung zwischen View und Model sauber getrennt.
- * Die Komponente erhält alle benötigten Werte und Handler über den Hook
- * und bleibt dadurch einfach und gut testbar.
+ * Unterstützt sowohl den Create- als auch den Edit-Modus.
+ * Wird `task` übergeben, wechselt das Formular automatisch in den Bearbeitungsmodus.
  */
 const TaskForm: React.FC<TaskFormProps> = ({ task, onSaved }) => {
     const {
@@ -49,9 +37,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ task, onSaved }) => {
     } = useTaskForm(task, onSaved);
 
     return (
-        <div className="task-form-container">
-            <h2>{isEditing ? 'Task bearbeiten' : 'Neuen Task erstellen'}</h2>
-
+        <Stack spacing={3}>
             <ValidationErrorDisplay
                 fieldErrors={fieldErrors}
                 rawErrorDebug={rawErrorDebug}
@@ -60,71 +46,81 @@ const TaskForm: React.FC<TaskFormProps> = ({ task, onSaved }) => {
             />
 
             <form onSubmit={handleSubmit}>
-                <TaskFormField
-                    id="title"
-                    label="Titel"
-                    type="text"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    error={fieldErrors.title}
-                    required
-                    disabled={isSubmitting}
-                />
+                <Stack spacing={3}>
+                    <TaskFormField
+                        id="title"
+                        label="Titel"
+                        type="text"
+                        value={formData.title}
+                        onChange={handleInputChange}
+                        error={fieldErrors.title}
+                        required
+                        disabled={isSubmitting}
+                    />
 
-                <TaskFormField
-                    id="description"
-                    label="Beschreibung"
-                    type="textarea"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    error={fieldErrors.description}
-                    disabled={isSubmitting}
-                />
+                    <TaskFormField
+                        id="description"
+                        label="Beschreibung"
+                        type="textarea"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        error={fieldErrors.description}
+                        disabled={isSubmitting}
+                    />
 
-                <TaskFormField
-                    id="status"
-                    label="Status"
-                    type="select"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    error={fieldErrors.status}
-                    options={[
-                        { value: 'OPEN', label: 'Offen' },
-                        { value: 'IN_PROGRESS', label: 'In Bearbeitung' },
-                        { value: 'COMPLETED', label: 'Abgeschlossen' },
-                        { value: 'BLOCKED', label: 'Blockiert' }
-                    ]}
-                    required
-                    disabled={isSubmitting}
-                />
+                    <TaskFormField
+                        id="status"
+                        label="Status"
+                        type="select"
+                        value={formData.status}
+                        onChange={handleInputChange}
+                        error={fieldErrors.status}
+                        options={[
+                            { value: 'OPEN', label: 'Offen' },
+                            { value: 'IN_PROGRESS', label: 'In Bearbeitung' },
+                            { value: 'COMPLETED', label: 'Abgeschlossen' },
+                            { value: 'BLOCKED', label: 'Blockiert' }
+                        ]}
+                        required
+                        disabled={isSubmitting}
+                    />
 
-                <TaskFormField
-                    id="dueDate"
-                    label="Fälligkeitsdatum"
-                    type="datetime-local"
-                    value={formData.dueDate}
-                    onChange={handleInputChange}
-                    error={fieldErrors.dueDate}
-                    disabled={isSubmitting}
-                />
+                    <TaskFormField
+                        id="dueDate"
+                        label="Fälligkeitsdatum"
+                        type="datetime-local"
+                        value={formData.dueDate}
+                        onChange={handleInputChange}
+                        error={fieldErrors.dueDate}
+                        disabled={isSubmitting}
+                    />
 
-                <TaskFormField
-                    id="assignedTo"
-                    label="Zugewiesen an"
-                    type="text"
-                    value={formData.assignedTo}
-                    onChange={handleInputChange}
-                    error={fieldErrors.assignedTo}
-                    disabled={isSubmitting}
-                />
+                    <TaskFormField
+                        id="assignedTo"
+                        label="Zugewiesen an"
+                        type="text"
+                        value={formData.assignedTo}
+                        onChange={handleInputChange}
+                        error={fieldErrors.assignedTo}
+                        disabled={isSubmitting}
+                    />
 
-                <button type="submit" disabled={isSubmitting}>
-                    {isSubmitting
-                        ? (isEditing ? 'Wird aktualisiert...' : 'Wird gespeichert...')
-                        : (isEditing ? 'Task aktualisieren' : 'Task erstellen')}
-                </button>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        disabled={isSubmitting}
+                        startIcon={
+                            isSubmitting ? <CircularProgress size={20} color="inherit" /> : null
+                        }
+                    >
+                        {isSubmitting
+                            ? (isEditing ? 'Wird aktualisiert...' : 'Wird gespeichert...')
+                            : (isEditing ? 'Task aktualisieren' : 'Task erstellen')}
+                    </Button>
+                </Stack>
             </form>
-        </div>
+        </Stack>
     );
 };
 

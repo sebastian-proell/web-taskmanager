@@ -1,32 +1,31 @@
-import TaskForm from './TaskForm.tsx';
 import { useTasks } from '../hooks/useTasks';
 
 /**
  * TaskList-Komponente – Reine Präsentationskomponente für die Task-Liste.
  *
- * Sie nutzt den useTasks Hook für die gesamte State-Logik (Laden, Löschen, Bearbeiten).
- * Die Komponente konzentriert sich ausschließlich auf das Rendering.
+ * Diese Komponente ist bewusst schlank gehalten und enthält **keine** Formularlogik mehr.
+ * Sie zeigt lediglich die Liste der Tasks an und bietet Aktionen wie Bearbeiten und Löschen.
  *
- * Good Practice:
- * - Komponente bleibt schlank (nur UI)
- * - State-Management komplett im Hook gekapselt
- * - Klare Trennung von View und Logik
+ * Best Practice:
+ * - Komponenten sollten möglichst eine klare, einzelne Verantwortung haben (Single Responsibility)
+ * - Formular und Liste sind nun vollständig getrennt
+ * - State-Management bleibt im useTasks Hook gekapselt
+ * - Die Komponente bleibt wiederverwendbar und einfach testbar
  *
  * Wichtig zu wissen:
- * Durch die Verwendung des useTasks Hooks wird die Zustandsverwaltung
- * zentral und konsistent gehalten. Die Komponente muss keine eigenen
- * useState-Hooks mehr verwalten.
+ * Durch das Entfernen der TaskForm aus der TaskList wird die Architektur deutlich cleaner.
+ * Die Liste ist jetzt eine reine View-Komponente. Das Formular zur Bearbeitung
+ * befindet sich separat auf der linken Seite der TaskManagement-Seite.
+ * Dadurch wird die Trennung von Anzeige und Bearbeitung klarer und die
+ * Wartbarkeit der Anwendung verbessert.
  */
 export default function TaskList() {
     const {
         tasks,
         loading,
         error,
-        editingTask,
-        deleteTask,
         startEditing,
-        cancelEditing,
-        refreshAfterSave
+        deleteTask,
     } = useTasks();
 
     if (loading) return <p>Lade Aufgaben...</p>;
@@ -34,51 +33,46 @@ export default function TaskList() {
 
     return (
         <div>
-            <h2>Aufgaben verwalten</h2>
-
-            <TaskForm
-                task={editingTask}
-                onSaved={refreshAfterSave}
-            />
-
-            {editingTask && (
-                <button
-                    onClick={cancelEditing}
-                    style={{ marginBottom: '16px', color: '#666' }}
-                >
-                    Bearbeitung abbrechen
-                </button>
-            )}
-
-            <table>
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Titel</th>
-                    <th>Status</th>
-                    <th>Fällig</th>
-                    <th>Zugewiesen an</th>
-                    <th style={{ textAlign: 'center' }}>Aktionen</th>
-                </tr>
-                </thead>
-                <tbody>
-                {tasks.map(task => (
-                    <tr key={task.id}>
-                        <td>{task.id}</td>
-                        <td>{task.title}</td>
-                        <td>{task.status}</td>
-                        <td>{new Date(task.dueDate).toLocaleDateString('de-DE')}</td>
-                        <td>{task.assignedTo}</td>
-                        <td style={{ textAlign: 'center' }}>
-                            <button onClick={() => startEditing(task)}>Bearbeiten</button>
-                            <button onClick={() => deleteTask(task.id)} style={{ marginLeft: '8px', color: '#e74c3c' }}>
-                                Löschen
-                            </button>
-                        </td>
+            {tasks.length === 0 ? (
+                <p>Keine Tasks vorhanden.</p>
+            ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                    <tr>
+                        <th style={{ textAlign: 'left', padding: '8px' }}>ID</th>
+                        <th style={{ textAlign: 'left', padding: '8px' }}>Titel</th>
+                        <th style={{ textAlign: 'left', padding: '8px' }}>Status</th>
+                        <th style={{ textAlign: 'left', padding: '8px' }}>Fällig</th>
+                        <th style={{ textAlign: 'left', padding: '8px' }}>Zugewiesen an</th>
+                        <th style={{ textAlign: 'center', padding: '8px' }}>Aktionen</th>
                     </tr>
-                ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {tasks.map(task => (
+                        <tr key={task.id}>
+                            <td style={{ padding: '8px' }}>{task.id}</td>
+                            <td style={{ padding: '8px' }}>{task.title}</td>
+                            <td style={{ padding: '8px' }}>{task.status}</td>
+                            <td style={{ padding: '8px' }}>
+                                {new Date(task.dueDate).toLocaleDateString('de-DE')}
+                            </td>
+                            <td style={{ padding: '8px' }}>{task.assignedTo}</td>
+                            <td style={{ textAlign: 'center', padding: '8px' }}>
+                                <button onClick={() => startEditing(task)}>
+                                    Bearbeiten
+                                </button>
+                                <button
+                                    onClick={() => deleteTask(task.id)}
+                                    style={{ marginLeft: '8px', color: '#e74c3c' }}
+                                >
+                                    Löschen
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 }
