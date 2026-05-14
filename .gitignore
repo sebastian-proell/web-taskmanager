@@ -33,4 +33,4 @@ build
 /frontend/dist/
 /frontend/node/
 /frontend/node_modules/
-/frontend/package-lock.json/
+/frontend/package-lock.json

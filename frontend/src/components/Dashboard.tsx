@@ -1,39 +1,49 @@
 import QuickStats from './QuickStats';
+import TaskList from './TaskList';
+import { useTasks } from '../hooks/useTasks';
 import {
     Container,
     Typography,
     Button,
     Box,
-    Paper
+    Paper,
+    Divider
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 /**
- * Dashboard – Reine Übersichtsseite.
+ * Dashboard – Übersichtsseite mit echten Daten.
  *
- * Zeigt Statistiken und eine kurze Begrüßung.
- * Die eigentliche Bearbeitung von Tasks findet auf der Seite "Aufgaben verwalten" statt.
- *
- * Best Practice:
- * - Dashboard sollte primär informativ sein (Quick Overview)
- * - Handlungsaufforderungen (z.B. Button) führen zur eigentlichen Arbeitsseite
- * - Keine doppelte Darstellung von Formularen
- *
- * Wichtig zu wissen:
- * Eine klare Trennung zwischen Übersicht (Dashboard) und Bearbeitung (Management)
- * verbessert die Usability deutlich. Nutzer:innen verstehen sofort, wo sie
- * nur einen schnellen Überblick bekommen und wo sie aktiv arbeiten können.
+ * Zeigt dynamische Statistiken basierend auf den echten Tasks aus dem Backend
+ * und integriert direkt die TaskList für einen schnellen Überblick.
  */
 export default function Dashboard() {
     const navigate = useNavigate();
+    const { tasks, loading, error } = useTasks();
 
-    // Beispielwerte (später dynamisch)
+    // Dynamische Berechnung der Statistiken aus den echten Daten
     const stats = {
-        open: 7,
-        inProgress: 4,
-        completed: 12,
-        blocked: 2,
+        open: tasks.filter(t => t.status === 'OPEN').length,
+        inProgress: tasks.filter(t => t.status === 'IN_PROGRESS').length,
+        completed: tasks.filter(t => t.status === 'COMPLETED').length,
+        blocked: tasks.filter(t => t.status === 'BLOCKED').length,
     };
+
+    if (loading) {
+        return (
+            <Container maxWidth="xl" sx={{ py: 4 }}>
+                <Typography>Lade Daten...</Typography>
+            </Container>
+        );
+    }
+
+    if (error) {
+        return (
+            <Container maxWidth="xl" sx={{ py: 4 }}>
+                <Typography color="error">Fehler beim Laden der Tasks: {error}</Typography>
+            </Container>
+        );
+    }
 
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -41,11 +51,12 @@ export default function Dashboard() {
                 <Typography variant="h4" component="h1" gutterBottom>
                     Willkommen zurück!
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 700 }}>
-                    Hier siehst du auf einen Blick, wie es um deine Aufgaben steht.
+                <Typography variant="body1" color="text.secondary">
+                    Hier siehst du einen schnellen Überblick über deine aktuellen Aufgaben.
                 </Typography>
             </Box>
 
+            {/* Dynamische Statistiken aus dem Backend */}
             <QuickStats
                 open={stats.open}
                 inProgress={stats.inProgress}
@@ -53,21 +64,30 @@ export default function Dashboard() {
                 blocked={stats.blocked}
             />
 
-            <Paper elevation={1} sx={{ p: 4, mt: 4, textAlign: 'center' }}>
-                <Typography variant="h6" gutterBottom>
-                    Tasks bearbeiten oder neue anlegen?
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    Wechsle zur Aufgabenverwaltung, um Tasks zu erstellen, zu bearbeiten oder zu löschen.
-                </Typography>
-                <Button
-                    variant="contained"
-                    size="large"
-                    onClick={() => navigate('/tasks')}
-                >
-                    Zu den Aufgaben wechseln
-                </Button>
+            <Divider sx={{ my: 4 }} />
+
+            {/* Task Liste direkt im Dashboard */}
+            <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">
+                        Aktuelle Tasks
+                    </Typography>
+                    <Button
+                        variant="outlined"
+                        onClick={() => navigate('/tasks')}
+                    >
+                        Alle Tasks verwalten
+                    </Button>
+                </Box>
+                <TaskList />
             </Paper>
+
+            {/* Optionaler Hinweis */}
+            <Box sx={{ textAlign: 'center', mt: 4 }}>
+                <Typography variant="body2" color="text.secondary">
+                    Für die vollständige Bearbeitung von Tasks wechselst du bitte in den Bereich „Aufgaben verwalten“.
+                </Typography>
+            </Box>
         </Container>
     );
 }
