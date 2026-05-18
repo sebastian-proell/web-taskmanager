@@ -6,18 +6,35 @@ import { Container, Grid, Typography, Paper, Divider, Button } from '@mui/materi
 /**
  * TaskManagement – Seite zur Verwaltung von Tasks.
  *
- * Formular und Liste sind klar getrennt.
- * Beim Klick auf "Bearbeiten" in der Liste wird der Task automatisch ins Formular geladen.
+ * Diese Komponente verbindet TaskForm (links) und TaskList (rechts)
+ * in einem responsiven Layout. Beim Klick auf "Bearbeiten" in der Liste
+ * wird der Task automatisch in das Formular geladen.
+ *
+ * Best Practice:
+ * - Zentrale State-Verwaltung über useTasks Hook
+ * - Klare Trennung von Präsentation (Form + Liste) und Logik (Hook)
+ * - Responsives Design mit MUI Grid (nebeneinander → untereinander)
+ *
+ * Wichtig zu wissen:
+ * Da TaskList und TaskForm beide denselben useTasks-Hook verwenden
+ * (wenn sie in derselben Komponenten-Hierarchie gerendert werden),
+ * wird der editingTask-State korrekt geteilt. Der Klick auf "Bearbeiten"
+ * in der Liste setzt editingTask, und TaskForm reagiert darauf.
  */
 export default function TaskManagement() {
     const {
+        tasks,
+        loading,
+        error,
         editingTask,
+        startEditing,
         cancelEditing,
-        refreshAfterSave
+        refreshAfterSave,
+        deleteTask
     } = useTasks();
 
-    const handleTaskSaved = () => {
-        refreshAfterSave();
+    const handleTaskSaved = async () => {
+        await refreshAfterSave();
         cancelEditing();
     };
 
@@ -65,7 +82,13 @@ export default function TaskManagement() {
                         <Typography variant="h6" gutterBottom>
                             Alle Tasks
                         </Typography>
-                        <TaskList />
+                        <TaskList
+                            tasks={tasks}
+                            loading={loading}
+                            error={error}
+                            onEdit={startEditing}
+                            onDelete={deleteTask}
+                        />
                     </Paper>
                 </Grid>
 

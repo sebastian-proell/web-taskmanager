@@ -1,51 +1,57 @@
-# TaskManager – Vorlesungsprojekt (Termin 5)
+# TaskManager – Vorlesungsprojekt (Termin 6)
 
-**Datenbindung und Zustandsverwaltung – Verknüpfung von View und Model**
+**Termin 6** – Moderne Frontend-Architektur mit Komponentenbibliotheken
 
-### Architektur-Übersicht (Termin 5)
+## Features (Stand Termin 6)
 
-Das Projekt wurde in Termin 5 um eine saubere Schichtentrennung erweitert:
-
-- **taskService.ts** — Zentrale API-Kommunikationsschicht
-- **useTaskForm Hook** — Formular-Logik + Datenbindung mit `useReducer`
-- **useTasks Hook** — Listenverwaltung + CRUD mit `useReducer`
-- **TaskForm.tsx** & **TaskList.tsx** — Reine Präsentationskomponenten
+- **Material UI (MUI) Integration** – Professionelles, konsistentes Design mit zentralem Theme
+- **Responsives Dashboard** – Übersicht mit dynamischen Statistiken (QuickStats)
+- **Vollständige Task-Verwaltung** – Erstellen, Bearbeiten, Löschen von Tasks
+- **Sauberer Edit-Flow** – Klick auf „Bearbeiten“ in der Liste → Formular wird automatisch befüllt
+- **Trennung von Übersicht und Bearbeitung** – Dashboard vs. TaskManagement-Seite
+- **Zentrale State-Verwaltung** – Custom Hooks (`useTasks`, `useTaskForm`) mit `useReducer`
+- **Vollständige Validierung** – Client- und Server-seitige Validierung mit klarer Fehleranzeige
 
 Dadurch wird die **Datenbindung** (controlled components + einheitliches formData-Modell) und die **Zustandsverwaltung** (explizite Zustandsmaschinen via useReducer) klar und wartbar umgesetzt.
 
-### Good Practice (Termin 5)
+### Good Practice (Termin 6)
 
-- Trennung von UI und Business-Logik durch Custom Hooks
-- Zentrale API-Schicht (`taskService`)
-- Verwendung von `useReducer` für konsistente Zustandsübergänge (Formular + Liste)
-- Komponenten bleiben schlank und fokussieren sich auf Rendering
-- Single Source of Truth für Formular- und Listen-State
-- Explizite Props + Callbacks für die Verknüpfung zwischen Komponenten
+- **Single Source of Truth** – Nur eine `useTasks`-Hook-Instanz pro Feature
+- **Controlled Components** – Alle Formularfelder sind kontrolliert
+- **Komponentenbibliothek** – Material UI für Konsistenz und Accessibility
+- **Responsives Design** – MUI Grid mit Breakpoints
+- **Saubere Trennung** – Präsentation (Components) vs. Logik (Hooks)
 
 ### Wichtig zu wissen
 
-- Das Projekt verwendet **React 18 + Vite + TypeScript** und **Spring Boot 4**
-- Alle sensiblen Daten (Credentials) kommen aus Environment-Variablen
-- Der `useTaskForm` Hook implementiert eine eigene kleine Zustandsmaschine für den Submit-Prozess
-- Der `useTasks` Hook verwaltet Lade-, Fehler- und Bearbeitungszustände zentral
-- Backend und Frontend sind weiterhin komplett getrennt
+Durch die konsequente Nutzung einer Komponentenbibliothek wie Material UI konnte die Entwicklungszeit für Standard-UI-Elemente drastisch reduziert werden. 
+Gleichzeitig wurde ein einheitliches Design-System etabliert, das Accessibility-Standards erfüllt und bei zukünftigen Erweiterungen konsistent bleibt.
 
-### Projektstruktur (wichtige Dateien Termin 5)
+### Projektstruktur (wichtige Dateien Termin 6)
 
 ```
-frontend/src/
-├── services/
-│   └── taskService.ts          # Zentrale API-Schicht
-├── hooks/
-│   ├── useTaskForm.ts          # Formular-State + Datenbindung (mit useReducer)
-│   └── useTasks.ts             # Listen-State + CRUD (mit useReducer)
-├── components/
-│   ├── TaskForm.tsx            # Reine UI-Komponente (nutzt useTaskForm)
-│   ├── TaskList.tsx            # Reine UI-Komponente (nutzt useTasks)
-│   ├── TaskFormField.tsx
-│   └── ValidationErrorDisplay.tsx
-└── App.tsx
+web-taskmanager/
+├── frontend/                 # React + Vite + TypeScript
+│   ├── src/
+│   │   ├── components/       # UI-Komponenten (Dashboard, TaskForm, TaskList, QuickStats...)
+│   │   ├── hooks/            # Custom Hooks (useTasks, useTaskForm)
+│   │   ├── services/         # API-Kommunikation
+│   │   └── App.tsx
+│   └── package.json
+│
+├── backend/                  # Spring Boot
+│   ├── src/main/java/...
+│   └── build.gradle
+│
+└── README.md
 ```
+
+## Wichtige Seiten
+
+| Route              | Beschreibung                              |
+|--------------------|-------------------------------------------|
+| `/`                | Dashboard mit Statistiken und Übersicht   |
+| `/tasks`           | Vollständige Task-Verwaltung (Form + Liste) |
 
 ### Voraussetzungen
 - Java 21 (oder höher)

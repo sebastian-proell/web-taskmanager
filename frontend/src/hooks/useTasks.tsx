@@ -93,9 +93,9 @@ export function useTasks() {
         dispatch({ type: 'SET_EDITING_TASK', payload: null });
     };
 
-    const refreshAfterSave = () => {
+    const refreshAfterSave = async () => {
         dispatch({ type: 'SET_EDITING_TASK', payload: null });
-        loadTasks();
+        await loadTasks();
     };
 
     useEffect(() => {

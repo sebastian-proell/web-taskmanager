@@ -129,9 +129,9 @@ export function useTaskForm(task?: Task | null, onSaved?: () => void) {
     }, [task]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        dispatch({ type: 'SET_FORM_DATA', payload: { [name]: value } });
-        dispatch({ type: 'CLEAR_FIELD_ERROR', payload: name });
+        const { id, value } = e.target;
+        dispatch({ type: 'SET_FORM_DATA', payload: { [id]: value } });
+        dispatch({ type: 'CLEAR_FIELD_ERROR', payload: id });
     };
 
     const handleValidationErrors = (errorData: any) => {

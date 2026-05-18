@@ -1,5 +1,3 @@
-import { useTasks } from '../hooks/useTasks';
-
 /**
  * TaskList-Komponente – Reine Präsentationskomponente für die Task-Liste.
  *
@@ -19,14 +17,15 @@ import { useTasks } from '../hooks/useTasks';
  * Dadurch wird die Trennung von Anzeige und Bearbeitung klarer und die
  * Wartbarkeit der Anwendung verbessert.
  */
-export default function TaskList() {
-    const {
-        tasks,
-        loading,
-        error,
-        startEditing,
-        deleteTask,
-    } = useTasks();
+interface TaskListProps {
+    tasks: any[];
+    loading: boolean;
+    error: string | null;
+    onEdit: (task: any) => void;
+    onDelete: (id: number) => void;
+}
+
+export default function TaskList({ tasks, loading, error, onEdit, onDelete }: TaskListProps) {
 
     if (loading) return <p>Lade Aufgaben...</p>;
     if (error) return <p style={{ color: 'red', whiteSpace: 'pre-wrap' }}>Fehler: {error}</p>;
@@ -58,11 +57,11 @@ export default function TaskList() {
                             </td>
                             <td style={{ padding: '8px' }}>{task.assignedTo}</td>
                             <td style={{ textAlign: 'center', padding: '8px' }}>
-                                <button onClick={() => startEditing(task)}>
+                                <button onClick={() => onEdit(task)}>
                                     Bearbeiten
                                 </button>
                                 <button
-                                    onClick={() => deleteTask(task.id)}
+                                    onClick={() => onDelete(task.id)}
                                     style={{ marginLeft: '8px', color: '#e74c3c' }}
                                 >
                                     Löschen

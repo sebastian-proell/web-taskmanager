@@ -19,7 +19,7 @@ import { useNavigate } from 'react-router-dom';
  */
 export default function Dashboard() {
     const navigate = useNavigate();
-    const { tasks, loading, error } = useTasks();
+    const { tasks, loading, error, startEditing, deleteTask } = useTasks();
 
     // Dynamische Berechnung der Statistiken aus den echten Daten
     const stats = {
@@ -79,13 +79,19 @@ export default function Dashboard() {
                         Alle Tasks verwalten
                     </Button>
                 </Box>
-                <TaskList />
+                <TaskList
+                    tasks={tasks}
+                    loading={loading}
+                    error={error}
+                    onEdit={startEditing}
+                    onDelete={deleteTask}
+                />
             </Paper>
 
             {/* Optionaler Hinweis */}
             <Box sx={{ textAlign: 'center', mt: 4 }}>
                 <Typography variant="body2" color="text.secondary">
-                    Für die vollständige Bearbeitung von Tasks wechselst du bitte in den Bereich „Aufgaben verwalten“.
+                    Für die vollständige Bearbeitung von Tasks bitte in den Bereich „Aufgaben verwalten“ wechseln.
                 </Typography>
             </Box>
         </Container>
